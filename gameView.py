@@ -10,5 +10,5 @@ class GameView:
 
         # White (255, 255, 255)
 
-    def refreshBoard(self, boardGiven):
+    def refresh_board(self, boardGiven):
         x = 1

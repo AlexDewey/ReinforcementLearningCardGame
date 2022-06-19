@@ -19,7 +19,7 @@ class Board:
         # Create Deck
         self.deck = Deck()
 
-    def attackCard(self, boardAttacked, cardValue):
+    def attack_card(self, boardAttacked, cardValue):
 
         row_pos = 3
 
@@ -37,11 +37,11 @@ class Board:
         else:
             self.p2_rows[row_pos].append(cardValue)
 
-    def defendCard(self, boardDefended, row, cardValueTarget):
+    def defend_card(self, boardDefended, row, cardValueTarget):
 
         if boardDefended == 1:
             self.p1_rows[row].remove(cardValueTarget)
         else:
             self.p2_rows[row].remove(cardValueTarget)
 
-        self.deck.discardCard(cardValueTarget)
+        self.deck.discard_card(cardValueTarget)

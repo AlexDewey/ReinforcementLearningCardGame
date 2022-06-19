@@ -1,12 +1,18 @@
 import numpy as np
 
+from keras.models import Sequential
+from keras.layers import Dense, Activation
+
 
 class Player:
 
     def __init__(self, position):
         self.position = position
 
-    def getPlayerAction(self, board, playerNum, passed):
+    def create_model(self):
+        model = Sequential()
+
+    def get_player_action(self, board, playerNum, passed):
         # actions: ["pass", ["attack", cardHandIndex], ["defend", row, cardTargeted]]
 
         if playerNum == 1:
@@ -59,4 +65,4 @@ class Player:
             opponent_counted[len(board.p1_hand)] = 1
 
         # 590 Total Length
-        board_input = np.concatenate((np.concatenate((np.concatenate((self_board, opponenet_board)), hand)), opponent_counted))
+        input_layer = np.concatenate((np.concatenate((np.concatenate((self_board, opponenet_board)), hand)), opponent_counted))

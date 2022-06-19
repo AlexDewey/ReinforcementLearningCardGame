@@ -1,12 +1,12 @@
 import random
 
 
-def shuffleDeck(deck):
+def shuffle_deck(deck):
     random.shuffle(deck)
     return deck
 
 
-def buildDeck(discardPile):
+def build_deck(discardPile):
     # Shuffling the discard pile into
     if len(discardPile) > 1:
         deck = discardPile
@@ -21,20 +21,20 @@ def buildDeck(discardPile):
 class Deck:
 
     def __init__(self):
-        deck = buildDeck([])
-        self.deck = shuffleDeck(deck)
+        deck = build_deck([])
+        self.deck = shuffle_deck(deck)
 
         self.discardPile = list()
 
-    def drawCard(self):
+    def draw_card(self):
         # If empty deck first replace
         if len(self.deck) == 0:
             # Basic deck
-            deck = buildDeck(self.discardPile)
-            self.deck = shuffleDeck(deck)
+            deck = build_deck(self.discardPile)
+            self.deck = shuffle_deck(deck)
 
             # Take out the cards in hand
         return self.deck.pop()
 
-    def discardCard(self, card):
+    def discard_card(self, card):
         self.discardPile.append(card)
