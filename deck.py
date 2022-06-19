@@ -12,7 +12,7 @@ def buildDeck(discardPile):
         deck = discardPile
     else:
         deck = list()
-    for value in range(2, 15):
+    for value in range(0, 13):
         for instance in range(0, 4):
             deck.append(value)
     return deck

@@ -20,19 +20,25 @@ class Player:
             else:
                 canPass = True
 
-        # 4 chances of a card, 13 values, 4 rows, 5 columns = 1040 self board
+        # 12 values, 4 rows, 5 columns = binary representation: [0-11], [0-3], [0,4] = 12x4x5 = 240
         self_board = np.zeros(1040).reshape(-1, 1)
         if playerNum == 1:
-            for rows in board.p1_rows:
-                for index, card in enumerate(rows):
-                    
+            for row_index, row in enumerate(board.p1_rows):
+                print(row_index)
+                for column_index, card in enumerate(row):
+                    print(column_index)
+                    print(str(card))
 
-
-        # 4 chances of a card, 13 values, 4 rows, 5 columns = 1040 opponent board
+        # 12 values, 4 rows, 5 columns = binary representation: [0-11], [0-3], [0,4] = 12x4x5 = 240
         opponenet_board = np.zeros(1040).reshape(-1, 1)
 
-        # 5 cards held x 4 suits x 13 values = 260 hand
+        # 5 cards held x 12 values = binary representation: [0-4], [0-11] = 5x12 = 60
         hand = np.zeros(260).reshape(-1, 1)
 
-        # 5 cards held by each player = 10 cards counted
-        cards_counted = np.zeros(10).reshape(-1, 1)
+        # 5 cards held by player = 5 cards counted [0-4] = 5
+        self_counted = np.zeros(5).reshape(-1, 1)
+
+        # 5 cards held by opponent = 5 cards counted [0-4] = 5
+        opponent_counted = np.zeros(5).reshape(-1, 1)
+
+        # In total 550

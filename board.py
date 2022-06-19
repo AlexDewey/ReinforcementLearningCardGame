@@ -23,13 +23,13 @@ class Board:
 
         row_pos = 3
 
-        if cardValue <= 3:
+        if cardValue <= 1:
             row_pos = 0
-        if 4 <= cardValue <= 10:
+        if 2 <= cardValue <= 8:
             row_pos = 1
-        if 11 <= cardValue <= 13:
+        if 9 <= cardValue <= 11:
             row_pos = 2
-        if cardValue == 14:
+        if cardValue == 12:
             row_pos = 3
 
         if boardAttacked == 1:
