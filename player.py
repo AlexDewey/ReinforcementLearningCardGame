@@ -6,11 +6,9 @@ from keras.layers import Dense, Activation
 
 class Player:
 
-    def __init__(self, position):
+    def __init__(self, position, model):
         self.position = position
-
-    def create_model(self):
-        model = Sequential()
+        self.model = model
 
     def get_player_action(self, board, playerNum, passed):
         # actions: ["pass", ["attack", cardHandIndex], ["defend", row, cardTargeted]]
@@ -65,4 +63,24 @@ class Player:
             opponent_counted[len(board.p1_hand)] = 1
 
         # 590 Total Length
-        input_layer = np.concatenate((np.concatenate((np.concatenate((self_board, opponenet_board)), hand)), opponent_counted))
+        neural_input = np.concatenate((np.concatenate((np.concatenate((self_board, opponenet_board)), hand)), opponent_counted))
+        neural_input = np.atleast_2d(neural_input)
+
+
+        # # either pass, attack or defend
+        # action = np.zeros(3).reshape(-1, 1)
+        #
+        # # which card to use
+        # hand_action = np.zeros(5).reshape(-1, 1)
+        #
+        # # which row to defend
+        # defend_action = np.zeros(20).reshape(-1, 1)
+        #
+        # output_layer = np.concatenate((np.concatenate((action, hand_action)), defend_action))
+
+
+        # output_prob = model.predict(neural_input)
+
+
+
+
