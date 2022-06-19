@@ -21,16 +21,22 @@ class Player:
                 canPass = True
 
         # 12 values, 4 rows, 5 columns = binary representation: [0-11], [0-3], [0,4] = 12x4x5 = 240
-        self_board = np.zeros(1040).reshape(-1, 1)
+        self_board = np.zeros(260).reshape(-1, 1)
         if playerNum == 1:
             for row_index, row in enumerate(board.p1_rows):
-                print(row_index)
-                for column_index, card in enumerate(row):
-                    print(column_index)
-                    print(str(card))
+                for column_index, card_value in enumerate(row):
+                    print(str(card_value))
+                    self_board[row_index + (4 * column_index) + (20 * card_value) ] = 1
+        else:
+            for row_index, row in enumerate(board.p2_rows):
+                for column_index, card_value in enumerate(row):
+                    print(str(card_value))
+                    self_board[row_index + (4 * column_index) + (20 * card_value)] = 1
+
+        print(self_board.tolist())
 
         # 12 values, 4 rows, 5 columns = binary representation: [0-11], [0-3], [0,4] = 12x4x5 = 240
-        opponenet_board = np.zeros(1040).reshape(-1, 1)
+        opponenet_board = np.zeros(260).reshape(-1, 1)
 
         # 5 cards held x 12 values = binary representation: [0-4], [0-11] = 5x12 = 60
         hand = np.zeros(260).reshape(-1, 1)

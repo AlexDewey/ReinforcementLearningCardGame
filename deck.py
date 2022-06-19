@@ -2,7 +2,7 @@ import random
 
 
 def shuffleDeck(deck):
-    deck = random.shuffle(deck)
+    random.shuffle(deck)
     return deck
 
 
