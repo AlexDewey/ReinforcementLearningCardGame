@@ -69,7 +69,7 @@ class KerduGame:
         playerNum = 1
 
         while board.gameOver is False:
-            action = players[playerNum].get_player_action(board, playerNum, playerPass[playerNum - 1])
+            action = players[playerNum].get_player_action(board, playerNum, players[playerNum - 1].model)
 
             if action != "pass":
                 playerPass[playerNum - 1] = False

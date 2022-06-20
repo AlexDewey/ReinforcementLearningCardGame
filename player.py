@@ -10,7 +10,7 @@ class Player:
         self.position = position
         self.model = model
 
-    def get_player_action(self, board, playerNum, passed):
+    def get_player_action(self, board, playerNum, model):
         # actions: ["pass", ["attack", cardHandIndex], ["defend", row, cardTargeted]]
 
         if playerNum == 1:
@@ -65,7 +65,22 @@ class Player:
         # 590 Total Length
         neural_input = np.concatenate((np.concatenate((np.concatenate((self_board, opponenet_board)), hand)), opponent_counted))
         neural_input = np.atleast_2d(neural_input)
+        neural_input = neural_input.reshape(1, -1)
 
+        output_prob = model.predict(neural_input)
+
+        print(output_prob[0])
+
+        print(output_prob[0][0:3])
+        action = np.argmax(output_prob[0][0:3])
+
+        print(output_prob[0][3:8])
+        hand_action = np.argmax(output_prob[0][3:8])
+
+        print(output_prob[0][8:])
+        defend_action = np.argmax(output_prob[0][8:])
+
+        print("test")
 
         # # either pass, attack or defend
         # action = np.zeros(3).reshape(-1, 1)
@@ -77,10 +92,6 @@ class Player:
         # defend_action = np.zeros(20).reshape(-1, 1)
         #
         # output_layer = np.concatenate((np.concatenate((action, hand_action)), defend_action))
-
-
-        # output_prob = model.predict(neural_input)
-
 
 
 
