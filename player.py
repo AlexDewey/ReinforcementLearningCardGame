@@ -10,7 +10,7 @@ class Player:
         self.position = position
         self.model = model
 
-    def get_player_action(self, board, playerNum, model):
+    def get_player_action(self, board, playerNum, model, cant_skip):
         # actions: ["pass", ["attack", cardHandIndex], ["defend", row, cardTargeted]]
 
         if playerNum == 1:
@@ -71,14 +71,56 @@ class Player:
 
         print(output_prob[0])
 
-        print(output_prob[0][0:3])
-        action = np.argmax(output_prob[0][0:3])
+        print(output_prob[0][0:5])
+        hand_action_prio = np.argsort(output_prob[0][0:5])[::-1]
 
-        print(output_prob[0][3:8])
-        hand_action = np.argmax(output_prob[0][3:8])
+        print(output_prob[0][5:])
+        defend_action_prio = np.argsort(output_prob[0][5:])[::-1]
 
-        print(output_prob[0][8:])
-        defend_action = np.argmax(output_prob[0][8:])
+        action_prio = np.argsort(output_prob[0])[::-1]
+
+        print("test")
+
+        for action in action_prio:
+            if 0 <= action <= 4:
+                # check if card exists in hand
+                if len(board.p1_hand) > action:
+                    return ["attack", action]
+                else:
+                    continue
+            elif 5 <= action <= 28:
+                # check if card exists in
+                if:
+
+            else:
+                if cant_skip:
+                    continue
+                else:
+                    return "pass"
+
+
+        # Validate available action
+        # for action in action_prio:
+        #     # If trying to pass
+        #     if action == 0:
+        #         if cant_skip:
+        #             continue
+        #         else:
+        #             return "pass"
+        #     # If trying to attack
+        #     elif action == 1:
+        #         # If the card exists to attack with and is in the player's hand
+        #         if len(board.p1_hand) > hand_action_prio[0]:
+        #             return ["attack", hand_action_prio[0]]
+        #         else:
+        #
+        #     # If trying to defend
+        #     elif action == 2:
+        #         if len(board.pe)
+
+
+
+
 
         print("test")
 
