@@ -9,8 +9,8 @@ class Board:
         self.p2_rows = [[], [], [], []]
 
         # Hands of both players
-        self.p1_hand = list()
-        self.p2_hand = list()
+        self.p1_hand = []
+        self.p2_hand = []
 
         # Base Facts
         self.turn = 1

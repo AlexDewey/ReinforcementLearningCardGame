@@ -13,7 +13,8 @@ def create_model():
     model.add(Activation('relu'))
     model.add(Dense(590 * 2, input_shape=(590,)))
     model.add(Activation('relu'))
-    model.add(Dense(25, input_shape=(29,)))
+    # 100 for placement and card in defence, 5 for attack and 1 for pass. = 106
+    model.add(Dense(106, input_shape=(590,)))
     model.add(Activation('sigmoid'))
 
     model.compile(loss='mse', optimizer='adam')
@@ -69,7 +70,7 @@ class KerduGame:
         playerNum = 1
 
         while board.gameOver is False:
-            # actions: ["pass", ["attack", cardHandIndex], ["defend", row, cardTargeted]]
+            # actions: ["pass", ["attack", cardHandIndex], ["defend", cardTargetedRow, cardTargetedColumn, cardUsedIdx]]
             action = players[playerNum].get_player_action(board, playerNum, players[playerNum - 1].model, playerPass[playerNum - 1])
 
             if action != "pass":

@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 
 from keras.models import Sequential
@@ -69,34 +71,71 @@ class Player:
 
         output_prob = model.predict(neural_input)
 
-        print(output_prob[0])
-
-        print(output_prob[0][0:5])
-        hand_action_prio = np.argsort(output_prob[0][0:5])[::-1]
-
-        print(output_prob[0][5:])
-        defend_action_prio = np.argsort(output_prob[0][5:])[::-1]
-
         action_prio = np.argsort(output_prob[0])[::-1]
 
-        print("test")
+        if playerNum == 1:
+            for action in action_prio:
+                if 0 <= action <= 99:
+                    hand = math.ceil((action + 1) / 20)
+                    board_pos = (hand * 20 - action)
+                    row = math.ceil(board_pos / 5) - 1
+                    column = abs(row * 5 - board_pos) - 1
 
-        for action in action_prio:
-            if 0 <= action <= 4:
-                # check if card exists in hand
-                if len(board.p1_hand) > action:
-                    return ["attack", action]
-                else:
-                    continue
-            elif 5 <= action <= 28:
-                # check if card exists in
-                if:
+                    if column > len(board.p1_rows[row]):
+                        continue
+                    elif (hand - 1) < len(board.p1_hand):
+                        if column < len(board.p1_rows[row]):
+                            if board.p1_hand[hand - 1] < board.p1_rows[row][column]:
+                                continue
+                            else:
+                                return ["defend", row, column, hand - 1]
+                        else:
+                            continue
+                    else:
+                        continue
+                if 100 <= action <= 104:
+                    if action - 99 > len(board.p1_hand):
+                        continue
+                    else:
+                        return ["attack", action - 99]
+                if action == 105:
+                    if cant_skip:
+                        continue
+                    else:
+                        return "pass"
 
-            else:
-                if cant_skip:
-                    continue
-                else:
-                    return "pass"
+            if playerNum == 2:
+                for action in action_prio:
+                    if 0 <= action <= 99:
+                        hand = math.ceil((action + 1) / 20)
+                        board_pos = (hand * 20 - action)
+                        row = math.ceil(board_pos / 5) - 1
+                        column = abs(row * 5 - board_pos) - 1
+
+                        if column > len(board.p2_rows[row]):
+                            continue
+                        elif (hand - 1) < len(board.p2_hand):
+                            if column < len(board.p2_rows[row]):
+                                if board.p2_hand[hand - 1] < board.p2_rows[row][column]:
+                                    continue
+                                else:
+                                    return ["defend", row, column, hand - 1]
+                            else:
+                                continue
+                        else:
+                            continue
+                    if 100 <= action <= 104:
+                        if action - 99 > len(board.p2_hand):
+                            continue
+                        else:
+                            return ["attack", action - 99]
+                    if action == 105:
+                        if cant_skip:
+                            continue
+                        else:
+                            return "pass"
+
+            return "pass"
 
 
         # Validate available action
@@ -117,23 +156,4 @@ class Player:
         #     # If trying to defend
         #     elif action == 2:
         #         if len(board.pe)
-
-
-
-
-
-        print("test")
-
-        # # either pass, attack or defend
-        # action = np.zeros(3).reshape(-1, 1)
-        #
-        # # which card to use
-        # hand_action = np.zeros(5).reshape(-1, 1)
-        #
-        # # which row to defend
-        # defend_action = np.zeros(20).reshape(-1, 1)
-        #
-        # output_layer = np.concatenate((np.concatenate((action, hand_action)), defend_action))
-
-
 
