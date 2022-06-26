@@ -19,6 +19,14 @@ class Board:
         # Create Deck
         self.deck = Deck()
 
+    def fill_hand(self, player):
+        if player == 1:
+            while len(self.p1_hand) < 5:
+                self.p1_hand.append(self.deck.draw_card())
+        else:
+            while len(self.p2_hand) < 5:
+                self.p2_hand.append(self.deck.draw_card())
+
     def attack_card(self, boardAttacked, cardValue):
 
         row_pos = 3

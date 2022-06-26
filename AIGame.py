@@ -69,6 +69,9 @@ class KerduGame:
 
         playerNum = 1
 
+        for player in players:
+            board.fill_hand(player)
+
         while board.gameOver is False:
             # actions: ["pass", ["attack", cardHandIndex], ["defend", cardTargetedRow, cardTargetedColumn, cardUsedIdx]]
             action = players[playerNum].get_player_action(board, playerNum, players[playerNum - 1].model, playerPass[playerNum - 1])
