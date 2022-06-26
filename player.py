@@ -98,42 +98,42 @@ class Player:
                     if action - 99 > len(board.p1_hand):
                         continue
                     else:
-                        return ["attack", action - 99]
+                        return ["attack", action - 100]
                 if action == 105:
                     if not player_can_pass:
                         continue
                     else:
                         return "pass"
 
-            if playerNum == 2:
-                for action in action_prio:
-                    if 0 <= action <= 99:
-                        hand = math.ceil((action + 1) / 20)
-                        board_pos = (hand * 20 - action)
-                        row = math.ceil(board_pos / 5) - 1
-                        column = abs(row * 5 - board_pos) - 1
+        if playerNum == 2:
+            for action in action_prio:
+                if 0 <= action <= 99:
+                    hand = math.ceil((action + 1) / 20)
+                    board_pos = (hand * 20 - action)
+                    row = math.ceil(board_pos / 5) - 1
+                    column = abs(row * 5 - board_pos) - 1
 
-                        if column > len(board.p2_rows[row]):
-                            continue
-                        elif (hand - 1) < len(board.p2_hand):
-                            if column < len(board.p2_rows[row]):
-                                if board.p2_hand[hand - 1] < board.p2_rows[row][column]:
-                                    continue
-                                else:
-                                    return ["defend", row, column, hand - 1]
-                            else:
+                    if column > len(board.p2_rows[row]):
+                        continue
+                    elif (hand - 1) < len(board.p2_hand):
+                        if column < len(board.p2_rows[row]):
+                            if board.p2_hand[hand - 1] < board.p2_rows[row][column]:
                                 continue
+                            else:
+                                return ["defend", row, column, hand - 1]
                         else:
                             continue
-                    if 100 <= action <= 104:
-                        if action - 99 > len(board.p2_hand):
-                            continue
-                        else:
-                            return ["attack", action - 99]
-                    if action == 105:
-                        if not player_can_pass:
-                            continue
-                        else:
-                            return "pass"
+                    else:
+                        continue
+                if 100 <= action <= 104:
+                    if action - 99 > len(board.p2_hand):
+                        continue
+                    else:
+                        return ["attack", action - 100]
+                if action == 105:
+                    if not player_can_pass:
+                        continue
+                    else:
+                        return "pass"
 
-            return "pass"
+        return "pass"

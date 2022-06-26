@@ -72,6 +72,17 @@ class KerduGame:
         while board.gameOver is False:
             # If both players passed, draw cards. Automatically the case at the start of the game
             if False not in playerPass:
+                # End game if cards in first row
+                if len(board.p1_rows[0]) != 0 or len(board.p2_rows[0]) != 0:
+                    board.gameOver = True
+                    break
+                # Move all cards up a row
+                for index in range(1, 4):
+                    board.p1_rows[index - 1] = board.p1_rows[index]
+                    board.p2_rows[index - 1] = board.p2_rows[index]
+                board.p1_rows[3] = []
+                board.p2_rows[3] = []
+                # Refill hands
                 for index in range(0, len(players)):
                     board.fill_hand(index + 1)
                     playerPass[index] = False
@@ -86,7 +97,7 @@ class KerduGame:
                     card_in_play = True
 
             # actions: ["pass", ["attack", cardHandIndex], ["defend", cardTargetedRow, cardTargetedColumn, cardUsedIdx]]
-            action = players[playerNum].get_player_action(board, playerNum, players[playerNum - 1].model, card_in_play)
+            action = players[playerNum - 1].get_player_action(board, playerNum, players[playerNum - 1].model, card_in_play)
 
             if action != "pass":
                 playerPass[playerNum - 1] = False
@@ -95,13 +106,15 @@ class KerduGame:
 
             if action[0] == "attack":
                 if playerNum == 1:
-                    board.attack_card(playerNum, board.p2_hand[action[1]])
+                    board.attack_card(2, board.p1_hand[action[1]])
                 else:
-                    board.attack_card(playerNum, board.p1_hand[action[1]])
+                    board.attack_card(1, board.p2_hand[action[1]])
 
             if action[0] == "defend":
                 if playerNum == 1:
-                    board.defend_card(2, action[1], action[2])
+                    board.defend_card(1, action[1], action[2], action[3])
+                else:
+                    board.defend_card(2, action[1], action[2], action[3])
 
             if playerNum == 2:
                 playerNum = 1

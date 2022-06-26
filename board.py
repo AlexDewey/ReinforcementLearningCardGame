@@ -40,16 +40,26 @@ class Board:
         if cardValue == 12:
             row_pos = 3
 
+        # We need to remove the card from hand and place it on the board
         if boardAttacked == 1:
             self.p1_rows[row_pos].append(cardValue)
+            self.p2_hand.remove(cardValue)
         else:
             self.p2_rows[row_pos].append(cardValue)
+            self.p1_hand.remove(cardValue)
 
-    def defend_card(self, boardDefended, row, cardValueTarget):
+    def defend_card(self, boardDefended, row, column, card_used_idx):
 
         if boardDefended == 1:
-            self.p1_rows[row].remove(cardValueTarget)
-        else:
-            self.p2_rows[row].remove(cardValueTarget)
+            # Discard and remove both the hand card and row card
+            self.deck.discard_card(self.p1_rows[row][column])
+            del self.p1_rows[row][column]
 
-        self.deck.discard_card(cardValueTarget)
+            self.deck.discard_card(self.p1_hand[card_used_idx])
+            del self.p1_hand[card_used_idx]
+        else:
+            self.deck.discard_card(self.p2_rows[row][column])
+            del self.p2_rows[row][column]
+
+            self.deck.discard_card(self.p2_hand[card_used_idx])
+            del self.p2_hand[card_used_idx]
