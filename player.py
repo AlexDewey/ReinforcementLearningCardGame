@@ -12,8 +12,9 @@ class Player:
         self.position = position
         self.model = model
 
-    def get_player_action(self, board, playerNum, model, cant_skip):
-        # actions: ["pass", ["attack", cardHandIndex], ["defend", row, cardTargeted]]
+    # player_can_pass is passed in as variable card_in_play, as if there's a card in play, a player can pass
+    def get_player_action(self, board, playerNum, model, player_can_pass):
+        # possible action datatypes: ["pass", ["attack", cardHandIndex], ["defend", row, cardTargeted]]
 
         if playerNum == 1:
             if len(board.p1_hand) == 5:
@@ -60,9 +61,9 @@ class Player:
         # 5 cards held by opponent = 5 cards counted [0-4] = 5
         opponent_counted = np.zeros(5).reshape(-1, 1)
         if playerNum == 1:
-            opponent_counted[len(board.p2_hand)] = 1
+            opponent_counted[len(board.p2_hand) - 1] = 1
         else:
-            opponent_counted[len(board.p1_hand)] = 1
+            opponent_counted[len(board.p1_hand) - 1] = 1
 
         # 590 Total Length
         neural_input = np.concatenate((np.concatenate((np.concatenate((self_board, opponenet_board)), hand)), opponent_counted))
@@ -99,7 +100,7 @@ class Player:
                     else:
                         return ["attack", action - 99]
                 if action == 105:
-                    if cant_skip:
+                    if not player_can_pass:
                         continue
                     else:
                         return "pass"
@@ -130,30 +131,9 @@ class Player:
                         else:
                             return ["attack", action - 99]
                     if action == 105:
-                        if cant_skip:
+                        if not player_can_pass:
                             continue
                         else:
                             return "pass"
 
             return "pass"
-
-
-        # Validate available action
-        # for action in action_prio:
-        #     # If trying to pass
-        #     if action == 0:
-        #         if cant_skip:
-        #             continue
-        #         else:
-        #             return "pass"
-        #     # If trying to attack
-        #     elif action == 1:
-        #         # If the card exists to attack with and is in the player's hand
-        #         if len(board.p1_hand) > hand_action_prio[0]:
-        #             return ["attack", hand_action_prio[0]]
-        #         else:
-        #
-        #     # If trying to defend
-        #     elif action == 2:
-        #         if len(board.pe)
-

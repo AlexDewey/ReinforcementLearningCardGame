@@ -65,22 +65,33 @@ class KerduGame:
 
         players = [p1, p2]
 
-        playerPass = [False, False]
+        playerPass = [True, True]
 
         playerNum = 1
 
-        for player in players:
-            board.fill_hand(player)
-
         while board.gameOver is False:
+            # If both players passed, draw cards. Automatically the case at the start of the game
+            if False not in playerPass:
+                for index in range(0, len(players)):
+                    board.fill_hand(index + 1)
+                    playerPass[index] = False
+
+            # If there's a card on the board, the player can pass, otherwise no
+            card_in_play = False
+            for row in board.p1_rows:
+                if len(row) != 0:
+                    card_in_play = True
+            for row in board.p2_rows:
+                if len(row) != 0:
+                    card_in_play = True
+
             # actions: ["pass", ["attack", cardHandIndex], ["defend", cardTargetedRow, cardTargetedColumn, cardUsedIdx]]
-            action = players[playerNum].get_player_action(board, playerNum, players[playerNum - 1].model, playerPass[playerNum - 1])
+            action = players[playerNum].get_player_action(board, playerNum, players[playerNum - 1].model, card_in_play)
 
             if action != "pass":
                 playerPass[playerNum - 1] = False
             else:
                 playerPass[playerNum - 1] = True
-                continue
 
             if action[0] == "attack":
                 if playerNum == 1:

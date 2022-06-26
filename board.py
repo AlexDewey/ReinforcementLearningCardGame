@@ -19,8 +19,8 @@ class Board:
         # Create Deck
         self.deck = Deck()
 
-    def fill_hand(self, player):
-        if player == 1:
+    def fill_hand(self, playerNum):
+        if playerNum == 1:
             while len(self.p1_hand) < 5:
                 self.p1_hand.append(self.deck.draw_card())
         else:
