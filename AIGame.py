@@ -6,6 +6,32 @@ from gameView import *
 from player import *
 
 
+def game_view(board):
+    print("==P1 Hand===")
+    for card in board.p1_hand:
+        print(card, end=" ")
+    print(" ")
+    print("==P1 Board==")
+    for row in board.p1_rows:
+        print("-", end=" ")
+        for card in row:
+            print(card + 2, end=" ")
+        print(" ")
+    print("============")
+    print("==P2 Hand===")
+    for card in board.p2_hand:
+        print(card, end=" ")
+    print(" ")
+    print("==P2 Board==")
+    for row in board.p2_rows:
+        print("-", end=" ")
+        for card in row:
+            print(card + 2, end=" ")
+        print(" ")
+    print("============")
+    print("\n\n\n\n")
+
+
 def create_model():
 
     model = Sequential()
@@ -70,6 +96,9 @@ class KerduGame:
         playerNum = 1
 
         while board.gameOver is False:
+            # Update game board
+            # game_view(board)
+
             # If both players passed, draw cards. Automatically the case at the start of the game
             if False not in playerPass:
                 # End game if cards in first row
