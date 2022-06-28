@@ -9,7 +9,7 @@ from player import *
 def game_view(board):
     print("==P1 Hand===")
     for card in board.p1_hand:
-        print(card, end=" ")
+        print(card + 2, end=" ")
     print(" ")
     print("==P1 Board==")
     for row in board.p1_rows:
@@ -20,7 +20,7 @@ def game_view(board):
     print("============")
     print("==P2 Hand===")
     for card in board.p2_hand:
-        print(card, end=" ")
+        print(card + 2, end=" ")
     print(" ")
     print("==P2 Board==")
     for row in board.p2_rows:
@@ -30,6 +30,16 @@ def game_view(board):
         print(" ")
     print("============")
     print("\n\n\n\n")
+
+
+def model_mutate(weights):
+    # mutate each models weights
+    for i in range(len(weights)):
+        for j in range(len(weights[i])):
+            if random.uniform(0, 1) > .85:
+                change = random.uniform(-.5,.5)
+                weights[i][j] += change
+    return weights
 
 
 def create_model():
@@ -53,7 +63,7 @@ class KerduGame:
     def __init__(self):
         print("Generating initial population")
         CREATE_NEW_POOL = True
-        TOTAL_MODELS = 50
+        TOTAL_MODELS = 50 # Even number please!
         GENERATIONS = 10
         current_pool = list()
 
@@ -72,13 +82,54 @@ class KerduGame:
             p1_pool = current_pool[0:math.floor(len(current_pool)/2)]
             p2_pool = current_pool[math.floor(len(current_pool)/2):]
 
+            winnerIdx = list()
+
             for player in range(len(p1_pool)):
-                board = Board()
-                self.play_game(board, p1_pool[player], p2_pool[player])
+                p1_win = False
+                p2_win = False
+
+                while (p1_win and p2_win) or (not p1_win and not p2_win):
+                    board = Board()
+                    [p1_win, p2_win] = self.play_game(board, p1_pool[player], p2_pool[player])
+
+                if p1_win:
+                    winnerIdx.append(1)
+                    print("1")
+                else:
+                    winnerIdx.append(2)
+                    print("2")
 
             print("Selection")
+            # P1 Pool are the pools that survive
+            for idx in winnerIdx:
+                if idx == 2:
+                    p1_pool[idx] = p2_pool[idx]
 
             print("Crossover")
+            # Crossover self and another random indexed model
+            for parent1 in p1_pool:
+                rand_idx = math.floor(random.random() * len(p1_pool))
+                parent2 = p1_pool[rand_idx]
+
+                weight1 = parent1.get_weights()
+                weight2 = parent2.get_weights()
+
+                new_weight1 = weight1
+                new_weight2 = weight2
+
+                gene = math.floor(random.random() * len(new_weight1))
+
+                new_weight1[gene] = weight2[gene]
+                new_weight2[gene] = weight1[gene]
+
+                cross_over_weights = np.asarray([new_weight1, new_weight2])
+
+                mutated1 = model_mutate(cross_over_weights[0])
+                mutated2 = model_mutate(cross_over_weights[0])
+
+                new_weights = list()
+                new_weights.append(mutated1)
+                new_weights.append(mutated2)
 
             print("Mutation")
 
@@ -149,6 +200,15 @@ class KerduGame:
                 playerNum = 1
             else:
                 playerNum = playerNum + 1
+
+        win_return = [False, False]
+
+        if len(board.p2_rows[0]) != 0:
+            win_return[0] = True
+        if len(board.p1_rows[0]) != 0:
+            win_return[1] = True
+
+        return  win_return
 
 
 KerduGame()

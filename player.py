@@ -16,23 +16,12 @@ class Player:
     def get_player_action(self, board, playerNum, model, player_can_pass):
         # possible action datatypes: ["pass", ["attack", cardHandIndex], ["defend", row, cardTargeted]]
 
-        if playerNum == 1:
-            if len(board.p1_hand) == 5:
-                canPass = False
-            else:
-                canPass = True
-        else:
-            if len(board.p2_hand) == 5:
-                canPass = False
-            else:
-                canPass = True
-
         # 4 rows [0-3], 5 columns [0-4], 13 values [0-12], 4 x 5 x 13 = 260
         self_board = np.zeros(260).reshape(-1, 1)
         if playerNum == 1:
             for row_index, row in enumerate(board.p1_rows):
                 for column_index, card_value in enumerate(row):
-                    self_board[row_index + (4 * column_index) + (20 * card_value) ] = 1
+                    self_board[row_index + (4 * column_index) + (20 * card_value)] = 1
         else:
             for row_index, row in enumerate(board.p2_rows):
                 for column_index, card_value in enumerate(row):
@@ -43,7 +32,7 @@ class Player:
         if playerNum == 1:
             for row_index, row in enumerate(board.p2_rows):
                 for column_index, card_value in enumerate(row):
-                    opponenet_board[row_index + (4 * column_index) + (20 * card_value) ] = 1
+                    opponenet_board[row_index + (4 * column_index) + (20 * card_value)] = 1
         else:
             for row_index, row in enumerate(board.p1_rows):
                 for column_index, card_value in enumerate(row):
