@@ -64,6 +64,7 @@ class KerduGame:
         for generation in range(GENERATIONS):
             print("Generation " + str(generation) + "/" + str(generations) + ", mutation rate " + str(self.mutation_rate))
 
+            # todo: rework this code so no break :3
             random.shuffle(base_pool)
             p1_pool = base_pool[0:math.floor(len(base_pool) / 2)]
             p2_pool = base_pool[math.floor(len(base_pool) / 2):]
@@ -90,46 +91,51 @@ class KerduGame:
 
             # print("Selection")
             # P1 Pool are the pools that survive
-            for idx in winnerIdx:
-                if idx == 2:
-                    p1_pool[idx] = p2_pool[idx]
+            for index, winner in enumerate(winnerIdx):
+                if winner == 2:
+                    p1_pool[index] = p2_pool[index]
 
             # Crossover self and another random indexed model
             for parent_index, parent1 in enumerate(p1_pool):
-                rand_idx = math.floor(random.random() * len(p1_pool))
+                rand_idx = parent_index
+                while rand_idx == parent_index:
+                    rand_idx = math.floor(random.random() * len(p1_pool))
                 parent2 = p1_pool[rand_idx]
 
-                weight1 = parent1.get_weights()
-                weight2 = parent2.get_weights()
+                new_weight1 = parent1.get_weights()
+                new_weight2 = parent2.get_weights()
 
-                new_weight1 = weight1
-                new_weight2 = weight2
-
+                # Crossover
                 for layer_index, layer in enumerate(new_weight1):
                     for gene_index in range(len(layer)):
                         if random.random() > 0.85:
-                            layer[gene_index] = weight2[layer_index][gene_index]
+                            layer[gene_index] = new_weight2[layer_index][gene_index]
                 for layer_index, layer in enumerate(new_weight2):
                     for gene_index in range(len(layer)):
                         if random.random() > 0.85:
-                            layer[gene_index] = weight2[layer_index][gene_index]
+                            layer[gene_index] = new_weight2[layer_index][gene_index]
 
                 # Mutation
                 for layer in new_weight1:
+                    print(layer)
                     for gene_index in range(len(layer)):
-                        if random.random() > 1 - self.mutation_rate:
-                            layer[gene_index] += random.uniform(-0.5, 0.5)
+                        print(gene_index)
+                        print(len(layer[gene_index]) - 1)
+                        for connection_index in range(len(layer[gene_index]) - 1):
+                            if random.random() > 1 - self.mutation_rate:
+                                layer[gene_index][connection_index] += random.uniform(-0.5, 0.5)
                 for layer in new_weight2:
                     for gene_index in range(len(layer)):
-                        if random.random() > 1 - self.mutation_rate:
-                            layer[gene_index] += random.uniform(-0.5, 0.5)
+                        for connection_index in range(len(layer[gene_index]) - 1):
+                            if random.random() > 1 - self.mutation_rate:
+                                layer[gene_index][connection_index] += random.uniform(-0.5, 0.5)
 
 
-                # model.set_weights
                 # Set values to location
                 parent1.set_weights(new_weight1)
                 p2_pool[parent_index] = create_model().set_weights(new_weight2)
 
+            # todo: rework this code for no break :3
             base_pool = p1_pool + p2_pool
 
         original_pool = list()
