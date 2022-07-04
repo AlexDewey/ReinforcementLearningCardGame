@@ -107,12 +107,12 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/AIGame.py</url>
-          <line>134</line>
+          <line>133</line>
           <option name="timeStamp" value="22" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/AIGame.py</url>
-          <line>126</line>
+          <line>125</line>
           <option name="timeStamp" value="25" />
         </line-breakpoint>
       </breakpoints>

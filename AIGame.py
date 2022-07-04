@@ -32,8 +32,7 @@ def game_view(board):
 
 def create_model():
     model = keras.Sequential([
-        keras.layers.Dense(590, input_shape=(590,)),
-        keras.layers.Dense((590 * 2), activation="relu"),
+        keras.layers.Dense((590 * 2), input_shape=(590,), activation="relu"),
         keras.layers.Dense(106, activation="relu")
     ])
 
