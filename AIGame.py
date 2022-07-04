@@ -63,7 +63,6 @@ class KerduGame:
         for generation in range(GENERATIONS):
             print("Generation " + str(generation) + "/" + str(generations) + ", mutation rate " + str(self.mutation_rate))
 
-            # todo: rework this code so no break :3
             random.shuffle(base_pool)
             p1_pool = base_pool[0:math.floor(len(base_pool) / 2)]
             p2_pool = base_pool[math.floor(len(base_pool) / 2):]
@@ -134,7 +133,6 @@ class KerduGame:
                 parent1.set_weights(new_weight1)
                 p2_pool[parent_index] = create_model().set_weights(new_weight2)
 
-            # todo: rework this code for no break :3
             base_pool = p1_pool + p2_pool
 
         original_pool = list()
@@ -240,7 +238,3 @@ class KerduGame:
             win_return[1] = True
 
         return win_return
-
-
-KerduGame(0.01, 10, 100)
-print("Done!")
