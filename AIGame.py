@@ -50,6 +50,8 @@ class KerduGame:
         GENERATIONS = generations
         base_pool = list()
 
+        # CREATING MODELS AND SAVING THEIR BASE SELVES
+
         for i in range(TOTAL_MODELS):
             model = create_model()
             model.save_weights("SavedModels/model_base_" + str(i) + ".keras")
@@ -59,6 +61,8 @@ class KerduGame:
             for i in range(TOTAL_MODELS):
                 base_pool[i].load_weights("SavedModels/model_new" + str(i) + ".keras")
 
+
+        # TRAINING MODELS
 
         for generation in range(GENERATIONS):
             print("Generation " + str(generation) + "/" + str(generations) + ", mutation rate " + str(self.mutation_rate))
@@ -73,27 +77,25 @@ class KerduGame:
                 p1_win = False
                 p2_win = False
 
-                # rematches = 0
+                # HAVING BOTS PLAY EACH OTHER
 
                 while (p1_win and p2_win) or (not p1_win and not p2_win):
                     board = Board()
                     [p1_win, p2_win] = self.play_game(board, p1_pool[player_index], p2_pool[player_index])
-                    # rematches += 1
 
                 if p1_win:
                     winnerIdx.append(1)
-                    # print("1    " + str(rematches))
                 else:
                     winnerIdx.append(2)
-                    # print("2    " + str(rematches))
 
-            # print("Selection")
-            # P1 Pool are the pools that survive
+            # P1 POOL IS USED FOR ALL WINNERS
+
             for index, winner in enumerate(winnerIdx):
                 if winner == 2:
                     p1_pool[index] = p2_pool[index]
 
-            # Crossover self and another random indexed model
+            # CREATING NEW POOL BASED OFF OF WINNERS
+
             for parent_index, parent1 in enumerate(p1_pool):
                 rand_idx = parent_index
                 while rand_idx == parent_index:
@@ -103,7 +105,8 @@ class KerduGame:
                 new_weight1 = parent1.get_weights()
                 new_weight2 = parent2.get_weights()
 
-                # Crossover
+                # CROSSOVER
+
                 for layer_index, layer in enumerate(new_weight1):
                     for gene_index in range(len(layer)):
                         if random.random() > 0.85:
@@ -113,7 +116,8 @@ class KerduGame:
                         if random.random() > 0.85:
                             layer[gene_index] = new_weight2[layer_index][gene_index]
 
-                # Mutation
+                # MUTATION
+
                 for layer in new_weight1:
                     print(layer)
                     for gene_index in range(len(layer)):
@@ -129,7 +133,8 @@ class KerduGame:
                                 layer[gene_index][connection_index] += random.uniform(-0.5, 0.5)
 
 
-                # Set values to location
+                # SAVING CHANGES
+
                 parent1.set_weights(new_weight1)
                 p2_pool[parent_index] = create_model().set_weights(new_weight2)
 
