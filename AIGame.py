@@ -119,24 +119,27 @@ class KerduGame:
                 # MUTATION
 
                 for layer in new_weight1:
-                    print(layer)
-                    for gene_index in range(len(layer)):
-                        print(gene_index)
-                        print(len(layer[gene_index]) - 1)
-                        for connection_index in range(len(layer[gene_index]) - 1):
-                            if random.random() > 1 - self.mutation_rate:
-                                layer[gene_index][connection_index] += random.uniform(-0.5, 0.5)
+                    if layer.ndim == 2:
+                        for gene_index in range(len(layer)):
+                            for connection_index in range(len(layer[gene_index]) - 1):
+                                if random.random() > 1 - self.mutation_rate:
+                                    layer[gene_index][connection_index] += random.uniform(-0.5, 0.5)
                 for layer in new_weight2:
-                    for gene_index in range(len(layer)):
-                        for connection_index in range(len(layer[gene_index]) - 1):
-                            if random.random() > 1 - self.mutation_rate:
-                                layer[gene_index][connection_index] += random.uniform(-0.5, 0.5)
+                    if layer.ndim == 2:
+                        for gene_index in range(len(layer)):
+                            for connection_index in range(len(layer[gene_index]) - 1):
+                                if random.random() > 1 - self.mutation_rate:
+                                    layer[gene_index][connection_index] += random.uniform(-0.5, 0.5)
 
 
                 # SAVING CHANGES
 
                 parent1.set_weights(new_weight1)
-                p2_pool[parent_index] = create_model().set_weights(new_weight2)
+                new_model = create_model()
+                new_model.set_weights(new_weight2)
+                p2_pool[parent_index] = new_model
+
+            # CONSTRUCTING NEW POOL
 
             base_pool = p1_pool + p2_pool
 

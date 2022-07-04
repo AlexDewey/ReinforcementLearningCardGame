@@ -1,3 +1,3 @@
 import AIGame
 
-a = AIGame.KerduGame(0.01, 10, 100)
+a = AIGame.KerduGame(0.01, 4, 100)
