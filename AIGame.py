@@ -67,6 +67,38 @@ class KerduGame:
         for generation in range(GENERATIONS):
             print("Generation " + str(generation) + "/" + str(generations) + ", mutation rate " + str(self.mutation_rate))
 
+            # todo: remove testing data
+            if generation % 5 == 0:
+                original_pool = list()
+                for i in range(TOTAL_MODELS):
+                    model = create_model()
+                    model.load_weights("SavedModels/model_base_" + str(i) + ".keras")
+                    original_pool.append(model)
+
+                trained_pool = base_pool
+
+                trained_wins = 0
+                trained_losses = 0
+
+                for pool_index in range(len(trained_pool)):
+                    p_trained_win = False
+                    p_base_win = False
+
+                    rematches = 0
+
+                    while (p_trained_win and p_base_win) or (not p_trained_win and not p_base_win):
+                        board = Board()
+                        [p_trained_win, p_base_win] = self.play_game(board, trained_pool[pool_index],
+                                                                     original_pool[pool_index])
+                        rematches += 1
+
+                    if p_trained_win:
+                        trained_wins += 1
+                    else:
+                        trained_losses += 1
+
+                print("Generation: " + str(generation) + " " + str(trained_wins / (trained_wins + trained_losses)))
+
             random.shuffle(base_pool)
             p1_pool = base_pool[0:math.floor(len(base_pool) / 2)]
             p2_pool = base_pool[math.floor(len(base_pool) / 2):]
@@ -143,12 +175,18 @@ class KerduGame:
 
             base_pool = p1_pool + p2_pool
 
+        # GRAB ORIGINAL AI
+
         original_pool = list()
         for i in range(TOTAL_MODELS):
             model = create_model()
-            original_pool.append(model.load_weights("SavedModels/model_base_"+str(i)+".keras"))
+            model.load_weights("SavedModels/model_base_"+str(i)+".keras")
+            original_pool.append(model)
 
         trained_pool = base_pool
+
+        trained_wins = 0
+        trained_losses = 0
 
         for pool_index in range(len(trained_pool)):
             p_trained_win = False
@@ -158,15 +196,16 @@ class KerduGame:
 
             while (p_trained_win and p_base_win) or (not p_trained_win and not p_base_win):
                 board = Board()
-                [p_trained_win, p_base_win] = self.play_game(board, trained_pool[pool_index], p_base_win[pool_index])
+                [p_trained_win, p_base_win] = self.play_game(board, trained_pool[pool_index], original_pool[pool_index])
                 rematches += 1
 
             if p_trained_win:
-                print("1    " + str(rematches))
+                trained_wins += 1
             else:
-                print("2    " + str(rematches))
+                trained_losses += 1
 
-
+        self.trained_wins = trained_wins
+        self.trained_losses = trained_losses
 
     @staticmethod
     def play_game(board, p1_model, p2_model):
@@ -246,3 +285,6 @@ class KerduGame:
             win_return[1] = True
 
         return win_return
+
+    def grabWinsLosses(self):
+        return [self.trained_wins, self.trained_losses]
