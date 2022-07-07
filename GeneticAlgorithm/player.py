@@ -75,7 +75,7 @@ class Player:
                         continue
                     elif (hand - 1) < len(board.p1_hand):
                         if column < len(board.p1_rows[row]):
-                            if board.p1_hand[hand - 1] < board.p1_rows[row][column]:
+                            if board.p1_hand[hand - 1] <= board.p1_rows[row][column]:
                                 continue
                             else:
                                 return ["defend", row, column, hand - 1]
@@ -106,7 +106,7 @@ class Player:
                         continue
                     elif (hand - 1) < len(board.p2_hand):
                         if column < len(board.p2_rows[row]):
-                            if board.p2_hand[hand - 1] < board.p2_rows[row][column]:
+                            if board.p2_hand[hand - 1] <= board.p2_rows[row][column]:
                                 continue
                             else:
                                 return ["defend", row, column, hand - 1]

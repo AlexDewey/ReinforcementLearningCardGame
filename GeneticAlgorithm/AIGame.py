@@ -1,7 +1,7 @@
 from tensorflow import keras
 
-from board import *
-from player import *
+from GeneticAlgorithm.board import *
+from GeneticAlgorithm.player import *
 
 
 def game_view(board):

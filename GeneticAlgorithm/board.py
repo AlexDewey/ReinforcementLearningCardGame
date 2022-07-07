@@ -1,4 +1,4 @@
-from deck import *
+from GeneticAlgorithm.deck import *
 
 
 class Board:
