@@ -1,4 +1,4 @@
-from GeneticAlgorithm.deck import *
+from BaseEnv.deck import *
 
 
 class Board:

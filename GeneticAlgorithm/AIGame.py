@@ -1,6 +1,6 @@
 from tensorflow import keras
 
-from GeneticAlgorithm.board import *
+from BaseEnv.board import *
 from GeneticAlgorithm.player import *
 
 
@@ -67,7 +67,6 @@ class KerduGame:
         for generation in range(GENERATIONS):
             print("Generation " + str(generation) + "/" + str(generations) + ", mutation rate " + str(self.mutation_rate))
 
-            # todo: remove testing data
             if generation % 5 == 0:
                 original_pool = list()
                 for i in range(TOTAL_MODELS):
