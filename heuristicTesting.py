@@ -1,3 +1,3 @@
-from DQN import DQNEnvironment
+from DQN import Environment
 
-x = DQNEnvironment.DQNGame()
+x = Environment.DQNGame()
