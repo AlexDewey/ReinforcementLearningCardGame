@@ -278,9 +278,11 @@ class KerduGame:
 
         win_return = [False, False]
 
-        if len(board.p2_rows[0]) != 0:
+        if len(board.p1_rows[0]) != 0 and len(board.p2_rows[0]) != 0:
+            x = 0
+        elif len(board.p2_rows[0]) != 0:
             win_return[0] = True
-        if len(board.p1_rows[0]) != 0:
+        elif len(board.p1_rows[0]) != 0:
             win_return[1] = True
 
         return win_return

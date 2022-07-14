@@ -3,17 +3,22 @@ import numpy as np
 from tf_agents.environments import py_environment
 from tf_agents.specs import array_spec
 from tf_agents.trajectories import time_step as ts
-
+from BaseEnv.board import Board
 
 class KerduGameEnv(py_environment.PyEnvironment):
 
     def __init__(self):
+        # pass (1), attack(5), defend(100) = 106
         self._action_spec = array_spec.BoundedArraySpec(
-            shape=(), dtype=np.int32, minimum=0, maximum=1, name='action')
+            shape=(106,), dtype=np.int32, minimum=0, maximum=1, name='action')
+        # boards (2), hand(65), opponent_num_cards(5) = 590
         self._observation_spec = array_spec.BoundedArraySpec(
-            shape=(1,), dtype=np.int32, minimum=0, name='observation')
+            shape=(590,), dtype=np.int32, minimum=0, name='observation')
         self._state = 0
         self._episode_ended = False
+
+        # Board for game, p2 is computer
+        self.board = Board()
 
     def action_spec(self):
         return self._action_spec
@@ -31,17 +36,24 @@ class KerduGameEnv(py_environment.PyEnvironment):
         if self._episode_ended:
             return self.reset()
 
-        if action == 1:
-            self._episode_ended = True
-        elif action == 0:
-            new_card = np.random.randint(1, 11)
-            self._state += new_card
-        else:
-            raise ValueError('action should be 0 or 1')
+        if action == 0:
+            # pass
+        elif 1 <= action <= 5:
+            # attack using card
+        elif 6 <= action <= 106:
+            # defend
 
-        if self._episode_ended or self._state >= 21:
-            reward = self._state - 21 if self._state <= 21 else -21
-            return ts.termination(np.array([self._state], dtype=np.int32), reward)
-        else:
-            return ts.transition(np.array([self._state], dtype=np.int32), reward=0.0, discount=1.0)
-    
+
+        # if action == 1:
+        #     self._episode_ended = True
+        # elif action == 0:
+        #     new_card = np.random.randint(1, 11)
+        #     self._state += new_card
+        # else:
+        #     raise ValueError('action should be 0 or 1')
+        #
+        # if self._episode_ended or self._state >= 21:
+        #     reward = self._state - 21 if self._state <= 21 else -21
+        #     return ts.termination(np.array([self._state], dtype=np.int32), reward)
+        # else:
+        #     return ts.transition(np.array([self._state], dtype=np.int32), reward=0.0, discount=1.0)
