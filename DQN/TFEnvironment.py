@@ -25,6 +25,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
         self.players = ["NN", "ENV"]
         self.playerPass = [True, True]
         self.card_in_play = False
+        self.playerNum = 1
 
     def action_spec(self):
         return self._action_spec
@@ -39,6 +40,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
         self.board = Board()
         self.playerPass = [True, True]
         self.card_in_play = False
+        self.playerNum = 1
         self.pre_action_logic()
         return ts.restart(np.array([self._state], dtype=np.int32))
 
@@ -59,6 +61,11 @@ class KerduGameEnv(py_environment.PyEnvironment):
                 self.board.defend_card(1, action_used[1], action_used[2], action_used[3])
             else:
                 self.board.defend_card(2, action_used[1], action_used[2], action_used[3])
+
+        if self.playerNum == 2:
+            self.playerNum = 1
+        else:
+            self.playerNum = self.playerNum + 1
 
     def pre_action_logic(self):
         if self.board.gameOver:
@@ -130,6 +137,18 @@ class KerduGameEnv(py_environment.PyEnvironment):
 
         self.post_action_logic(action_used)
 
+        self.pre_action_logic()
+
+        if self.card_in_play:
+            action_used = ["pass"]
+        else:
+            action_used = ["attack", 0]
+
+        # todo: Env action
+
+        self.post_action_logic(action_used)
+
+        self.pre_action_logic()
 
         # if action == 1:
         #     self._episode_ended = True
