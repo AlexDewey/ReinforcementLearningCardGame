@@ -35,6 +35,11 @@ class KerduGameEnv(py_environment.PyEnvironment):
     def _reset(self):
         self._state = 0
         self._episode_ended = False
+        # Initializes the board and gives players cards
+        self.board = Board()
+        self.playerPass = [True, True]
+        self.card_in_play = False
+        self.pre_action_logic()
         return ts.restart(np.array([self._state], dtype=np.int32))
 
     def post_action_logic(self, action_used):
@@ -55,15 +60,47 @@ class KerduGameEnv(py_environment.PyEnvironment):
             else:
                 self.board.defend_card(2, action_used[1], action_used[2], action_used[3])
 
+    def pre_action_logic(self):
+        if self.board.gameOver:
+            # todo: Figure out this whole mess
+            print("GAME OVER")
+
+            # If both players passed, draw cards. Automatically the case at the start of the game
+            if False not in self.playerPass:
+                # End game if cards in first row
+                if len(self.board.p1_rows[0]) != 0 or len(self.board.p2_rows[0]) != 0:
+                    self.board.gameOver = True
+                    # todo: Do this game over break
+                    break
+                # Move all cards up a row
+                for index in range(1, 4):
+                    self.board.p1_rows[index - 1] = self.board.p1_rows[index]
+                    self.board.p2_rows[index - 1] = self.board.p2_rows[index]
+                self.board.p1_rows[3] = []
+                self.board.p2_rows[3] = []
+                # Refill hands
+                for index in range(0, len(self.players)):
+                    self.board.fill_hand(index + 1)
+                    self.playerPass[index] = False
+
+            # If there's a card on the board, the player can pass, otherwise no
+            self.card_in_play = False
+            for row in self.board.p1_rows:
+                if len(row) != 0:
+                    self.card_in_play = True
+            for row in self.board.p2_rows:
+                if len(row) != 0:
+                    self.card_in_play = True
 
     def _step(self, action):
 
         if self._episode_ended:
             return self.reset()
 
-
-
-        action_used = ["pass"]
+        if self.card_in_play:
+            action_used = ["pass"]
+        else:
+            action_used = ["attack", 0]
 
         if 0 <= action <= 99:
             # defend
@@ -73,16 +110,16 @@ class KerduGameEnv(py_environment.PyEnvironment):
             column = abs(row * 5 - board_pos) - 1
 
             if column > len(self.board.p1_rows[row]):
-                action_used = ["pass"]
+                action_used = action_used
             elif (hand - 1) < len(self.board.p1_hand):
                 if column < len(self.board.p1_rows[row]):
                     if self.board.p1_hand[hand - 1] <= self.board.p1_rows[row][column]:
-                        action_used = ["pass"]
+                        action_used = action_used
                     else:
                         action_used = ["defend", hand, row, column]
         elif 100 <= action <= 105:
             if action - 99 > len(self.board.p1_hand):
-                action_used = ["pass"]
+                action_used = action_used
             else:
                 action_used = ["attack", action - 100]
         elif action == 106:
