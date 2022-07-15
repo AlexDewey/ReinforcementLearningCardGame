@@ -146,6 +146,28 @@ class KerduGameEnv(py_environment.PyEnvironment):
 
         # todo: Env action
 
+        defence_found = False
+        action_used = ["pass"]
+
+        # If immediate threat, defeat
+        if len(self.board.p2_rows[0]) > 0:
+            for column_index, attacking_card in enumerate(self.board.p2_rows[0]):
+                if defence_found:
+                    break
+                for card_index, card_in_hand in enumerate(self.board.p2_hand):
+                    if card_in_hand > attacking_card:
+                        action_used = ["defend", card_index, 0, column_index]
+                        defence_found = True
+                        break
+        elif len(self.board.p2_hand) > 0:
+            min_index = [0, self.board.p2_hand[0]]
+            for hand_index, card in enumerate(self.board.p2_hand):
+                if card < min_index[1]:
+                    min_index = [hand_index, card]
+            action_used = ["attack", min_index[0]]
+        else:
+            action_used = ["pass"]
+
         self.post_action_logic(action_used)
 
         self.pre_action_logic()
