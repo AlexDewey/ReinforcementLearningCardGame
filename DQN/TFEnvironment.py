@@ -94,17 +94,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
             if len(row) != 0:
                 self.card_in_play = True
 
-
-    def _step(self, action):
-
-        if self._episode_ended:
-            return self.reset()
-
-        if self.card_in_play:
-            action_used = ["pass"]
-        else:
-            action_used = ["attack", 0]
-
+    def interpret_action(self, action):
         if 0 <= action <= 99:
             # defend
             hand = math.ceil((action + 1) / 20)
@@ -113,16 +103,16 @@ class KerduGameEnv(py_environment.PyEnvironment):
             column = abs(row * 5 - board_pos) - 1
 
             if column > len(self.board.p1_rows[row]):
-                action_used = action_used
+                return None
             elif (hand - 1) < len(self.board.p1_hand):
                 if column < len(self.board.p1_rows[row]):
                     if self.board.p1_hand[hand - 1] <= self.board.p1_rows[row][column]:
-                        action_used = action_used
+                        return None
                     else:
                         action_used = ["defend", hand, row, column]
         elif 100 <= action <= 105:
             if action - 99 > len(self.board.p1_hand):
-                action_used = action_used
+                return None
             else:
                 action_used = ["attack", action - 100]
         elif action == 106:
@@ -130,6 +120,21 @@ class KerduGameEnv(py_environment.PyEnvironment):
                 action_used = ["attack", 0]
             else:
                 action_used = ["pass"]
+
+        return action_used
+
+    def _step(self, action):
+
+        if self._episode_ended:
+            return self.reset()
+
+        action_used = self.interpret_action(action)
+
+        if action_used is None:
+            if self.card_in_play:
+                action_used = ["pass"]
+            else:
+                action_used = ["attack", 0]
 
         self.post_action_logic(action_used)
 
