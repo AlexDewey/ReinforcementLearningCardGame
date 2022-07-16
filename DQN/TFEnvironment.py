@@ -68,36 +68,32 @@ class KerduGameEnv(py_environment.PyEnvironment):
             self.playerNum = self.playerNum + 1
 
     def pre_action_logic(self):
-        if self.board.gameOver:
-            # todo: Figure out this whole mess
-            print("GAME OVER")
+        # If both players passed, draw cards. Automatically the case at the start of the game
+        if False not in self.playerPass:
+            # End game if cards in first row
+            if len(self.board.p1_rows[0]) != 0 or len(self.board.p2_rows[0]) != 0:
+                self.board.gameOver = True
+                self._episode_ended = True
+            # Move all cards up a row
+            for index in range(1, 4):
+                self.board.p1_rows[index - 1] = self.board.p1_rows[index]
+                self.board.p2_rows[index - 1] = self.board.p2_rows[index]
+            self.board.p1_rows[3] = []
+            self.board.p2_rows[3] = []
+            # Refill hands
+            for index in range(0, len(self.players)):
+                self.board.fill_hand(index + 1)
+                self.playerPass[index] = False
 
-            # If both players passed, draw cards. Automatically the case at the start of the game
-            if False not in self.playerPass:
-                # End game if cards in first row
-                if len(self.board.p1_rows[0]) != 0 or len(self.board.p2_rows[0]) != 0:
-                    self.board.gameOver = True
-                    # todo: Do this game over break
-                    break
-                # Move all cards up a row
-                for index in range(1, 4):
-                    self.board.p1_rows[index - 1] = self.board.p1_rows[index]
-                    self.board.p2_rows[index - 1] = self.board.p2_rows[index]
-                self.board.p1_rows[3] = []
-                self.board.p2_rows[3] = []
-                # Refill hands
-                for index in range(0, len(self.players)):
-                    self.board.fill_hand(index + 1)
-                    self.playerPass[index] = False
+        # If there's a card on the board, the player can pass, otherwise no
+        self.card_in_play = False
+        for row in self.board.p1_rows:
+            if len(row) != 0:
+                self.card_in_play = True
+        for row in self.board.p2_rows:
+            if len(row) != 0:
+                self.card_in_play = True
 
-            # If there's a card on the board, the player can pass, otherwise no
-            self.card_in_play = False
-            for row in self.board.p1_rows:
-                if len(row) != 0:
-                    self.card_in_play = True
-            for row in self.board.p2_rows:
-                if len(row) != 0:
-                    self.card_in_play = True
 
     def _step(self, action):
 
@@ -144,8 +140,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
         else:
             action_used = ["attack", 0]
 
-        # todo: Env action
-
+        # Environment action being found
         defence_found = False
         action_used = ["pass"]
 
