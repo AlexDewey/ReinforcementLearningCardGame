@@ -128,6 +128,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
         if self._episode_ended:
             return self.reset()
 
+        # Completing action
         action_used = self.interpret_action(action)
 
         if action_used is None:
@@ -136,6 +137,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
             else:
                 action_used = ["attack", 0]
 
+        # Changing board based on action
         self.post_action_logic(action_used)
 
         self.pre_action_logic()
@@ -145,11 +147,8 @@ class KerduGameEnv(py_environment.PyEnvironment):
         else:
             action_used = ["attack", 0]
 
-        # Environment action being found
-        defence_found = False
-        action_used = ["pass"]
-
         # If immediate threat, defeat
+        defence_found = False
         if len(self.board.p2_rows[0]) > 0:
             for column_index, attacking_card in enumerate(self.board.p2_rows[0]):
                 if defence_found:
@@ -159,26 +158,32 @@ class KerduGameEnv(py_environment.PyEnvironment):
                         action_used = ["defend", card_index, 0, column_index]
                         defence_found = True
                         break
-        elif len(self.board.p2_hand) > 0:
+        elif len(self.board.p2_hand) > 0:  # If we have a card we can attack with
             min_index = [0, self.board.p2_hand[0]]
             for hand_index, card in enumerate(self.board.p2_hand):
                 if card < min_index[1]:
                     min_index = [hand_index, card]
             action_used = ["attack", min_index[0]]
-        else:
+        else:  # ... otherwise pass
             action_used = ["pass"]
 
         self.post_action_logic(action_used)
 
         self.pre_action_logic()
 
-        # if action == 1:
-        #     self._episode_ended = True
-        # elif action == 0:
-        #     new_card = np.random.randint(1, 11)
-        #     self._state += new_card
-        # else:
-        #     raise ValueError('action should be 0 or 1')
+        if self._episode_ended is False:
+            reward = 1
+            return ts.termination(np.array([self._state], dtype=np.int32), reward, discount=1.0)
+        else:
+            if len(self.board.p1_rows[0]) != 0 and len(self.board.p2_rows[0]) != 0:
+                reward = 10
+            elif len(self.board.p2_rows[0]) != 0:
+                reward = 100
+            elif len(self.board.p1_rows[0]) != 0:
+                reward = -100
+
+            return ts.termination(np.array([self._state], dtype=np.int32), reward)
+
         #
         # if self._episode_ended or self._state >= 21:
         #     reward = self._state - 21 if self._state <= 21 else -21
