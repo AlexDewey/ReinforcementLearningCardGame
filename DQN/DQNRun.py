@@ -48,7 +48,9 @@ eval_interval = 1000
 
 env = KerduGameEnv()
 
-env.reset()
+# env.reset()
+
+utils.validate_py_environment(env, episodes=5)
 
 # Obs Spec
 

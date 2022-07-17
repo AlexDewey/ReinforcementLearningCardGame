@@ -16,8 +16,11 @@ class KerduGameEnv(py_environment.PyEnvironment):
             shape=(106,), dtype=np.int32, minimum=0, maximum=1, name='action')
         # boards (2), hand(65), opponent_num_cards(5) = 590
         self._observation_spec = array_spec.BoundedArraySpec(
-            shape=(590,), dtype=np.int32, minimum=0, name='observation')
-        self._state = 0
+            shape=(590,), dtype=np.int32, minimum=0, maximum=1, name='observation')
+        # State needs to be our observation of shape=(590,)
+        self.board.fill_hand(1)
+        self.board.fill_hand(2)
+        self._state = self.transcribe_state()
         self._episode_ended = False
 
         # Board for game, P1 is NN and P2 is ENV
@@ -34,7 +37,6 @@ class KerduGameEnv(py_environment.PyEnvironment):
         return self._observation_spec
 
     def _reset(self):
-        self._state = 0
         self._episode_ended = False
         # Initializes the board and gives players cards
         self.board = Board()
@@ -42,6 +44,9 @@ class KerduGameEnv(py_environment.PyEnvironment):
         self.card_in_play = False
         self.playerNum = 1
         self.pre_action_logic()
+        self.board.fill_hand(1)
+        self.board.fill_hand(2)
+        self._state = self.transcribe_state()
         return ts.restart(np.array([self._state], dtype=np.int32))
 
     def post_action_logic(self, action_used):
@@ -123,6 +128,10 @@ class KerduGameEnv(py_environment.PyEnvironment):
 
         return action_used
 
+    def transcribe_state(self, ):
+        print("This is for transcription of board and hand states to a numpy observation!")
+        return 0
+
     def _step(self, action):
 
         if self._episode_ended:
@@ -171,9 +180,11 @@ class KerduGameEnv(py_environment.PyEnvironment):
 
         self.pre_action_logic()
 
+        self._state = self.transcribe_state()
+
         if self._episode_ended is False:
             reward = 1
-            return ts.termination(np.array([self._state], dtype=np.int32), reward, discount=1.0)
+            return ts.transition(np.array([self._state], dtype=np.int32), reward=reward, discount=1) # discount=1.0 argument?
         else:
             if len(self.board.p1_rows[0]) != 0 and len(self.board.p2_rows[0]) != 0:
                 reward = 10
@@ -182,11 +193,4 @@ class KerduGameEnv(py_environment.PyEnvironment):
             elif len(self.board.p1_rows[0]) != 0:
                 reward = -100
 
-            return ts.termination(np.array([self._state], dtype=np.int32), reward)
-
-        #
-        # if self._episode_ended or self._state >= 21:
-        #     reward = self._state - 21 if self._state <= 21 else -21
-        #     return ts.termination(np.array([self._state], dtype=np.int32), reward)
-        # else:
-        #     return ts.transition(np.array([self._state], dtype=np.int32), reward=0.0, discount=1.0)
+            return ts.termination(np.array([self._state], dtype=np.int32), reward=reward)
