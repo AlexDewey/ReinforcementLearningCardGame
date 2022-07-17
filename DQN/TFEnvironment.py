@@ -50,7 +50,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
         self.board.fill_hand(1)
         self.board.fill_hand(2)
         self._state = self.transcribe_state()
-        return ts.restart(np.array([self._state], dtype=np.int32))
+        return ts.restart(self._state)
 
     def post_action_logic(self, action_used):
         if action_used != "pass":
@@ -103,6 +103,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
                 self.card_in_play = True
 
     def interpret_action(self, action):
+        action_used = ["pass"]
         if 0 <= action <= 99:
             # defend
             hand = math.ceil((action + 1) / 20)
@@ -205,7 +206,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
         if self._episode_ended is False:
             reward = 1
 
-            return ts.transition(np.array([self._state], dtype=np.int32), reward=reward, discount=1.0)
+            return ts.transition(self._state, reward=reward, discount=1.0)
         else:
             if len(self.board.p1_rows[0]) != 0 and len(self.board.p2_rows[0]) != 0:
                 reward = 10
@@ -214,4 +215,4 @@ class KerduGameEnv(py_environment.PyEnvironment):
             else:  # Else loss and there's a card in p1_rows
                 reward = -100
 
-            return ts.termination(np.array([self._state], dtype=np.int32), reward=reward)
+            return ts.termination(self._state, reward=reward)
