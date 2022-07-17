@@ -17,14 +17,17 @@ class KerduGameEnv(py_environment.PyEnvironment):
         # boards (2), hand(65), opponent_num_cards(5) = 590
         self._observation_spec = array_spec.BoundedArraySpec(
             shape=(590,), dtype=np.int32, minimum=0, maximum=1, name='observation')
-        # State needs to be our observation of shape=(590,)
-        self.board.fill_hand(1)
-        self.board.fill_hand(2)
-        self._state = self.transcribe_state()
+
         self._episode_ended = False
 
         # Board for game, P1 is NN and P2 is ENV
         self.board = Board()
+
+        # State needs to be our observation of shape=(590,)
+        self.board.fill_hand(1)
+        self.board.fill_hand(2)
+        self._state = self.transcribe_state()
+
         self.players = ["NN", "ENV"]
         self.playerPass = [True, True]
         self.card_in_play = False
@@ -128,9 +131,26 @@ class KerduGameEnv(py_environment.PyEnvironment):
 
         return action_used
 
-    def transcribe_state(self, ):
-        print("This is for transcription of board and hand states to a numpy observation!")
-        return 0
+    def transcribe_state(self):
+        p1_board = np.zeros(260).reshape(-1, 1)
+        for row_index, row in enumerate(self.board.p1_rows):
+            for column_index, card_value in enumerate(row):
+                p1_board[row_index + (4 * column_index) + (20 * card_value)] = 1
+        p2_board = np.zeros(260).reshape(-1, 1)
+        for row_index, row in enumerate(self.board.p2_rows):
+            for column_index, card_value in enumerate(row):
+                p2_board[row_index + (4 * column_index) + (20 * card_value)] = 1
+        hand = np.zeros(65).reshape(-1, 1)
+        for hand_index, card_value in enumerate(self.board.p1_hand):
+            hand[hand_index + (5 * card_value)] = 1
+        opponent_num_cards = np.zeros(5).reshape(-1, 1)
+        opponent_num_cards[len(self.board.p2_hand) - 1] = 1
+
+        _state = np.concatenate((p1_board, np.concatenate((p2_board, np.concatenate((hand, opponent_num_cards))))))
+        _state = _state.astype('int32')
+        _state = _state.reshape(590,)
+
+        return _state
 
     def _step(self, action):
 
@@ -184,13 +204,14 @@ class KerduGameEnv(py_environment.PyEnvironment):
 
         if self._episode_ended is False:
             reward = 1
-            return ts.transition(np.array([self._state], dtype=np.int32), reward=reward, discount=1) # discount=1.0 argument?
+
+            return ts.transition(np.array([self._state], dtype=np.int32), reward=reward, discount=1.0)
         else:
             if len(self.board.p1_rows[0]) != 0 and len(self.board.p2_rows[0]) != 0:
                 reward = 10
             elif len(self.board.p2_rows[0]) != 0:
                 reward = 100
-            elif len(self.board.p1_rows[0]) != 0:
+            else:  # Else loss and there's a card in p1_rows
                 reward = -100
 
             return ts.termination(np.array([self._state], dtype=np.int32), reward=reward)
