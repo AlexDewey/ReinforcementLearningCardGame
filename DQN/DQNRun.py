@@ -1,133 +1,111 @@
-import numpy as np
-import tensorflow as tf
-import tf_agents
-from tf_agents.drivers import dynamic_step_driver
-from tf_agents.metrics import tf_metrics
-
 from DQN.TFEnvironment import KerduGameEnv
 
+import base64
+import imageio
+import IPython
+import matplotlib
+import matplotlib.pyplot as plt
+import PIL.Image
+import pyvirtualdisplay
+
+import tensorflow as tf
+
+from tf_agents.agents.categorical_dqn import categorical_dqn_agent
+from tf_agents.drivers import dynamic_step_driver
+from tf_agents.environments import suite_gym
 from tf_agents.environments import tf_py_environment
+from tf_agents.eval import metric_utils
+from tf_agents.metrics import tf_metrics
+from tf_agents.networks import categorical_q_network
+from tf_agents.policies import random_tf_policy
+from tf_agents.replay_buffers import tf_uniform_replay_buffer
+from tf_agents.trajectories import trajectory
+from tf_agents.utils import common
 
 from tf_agents.environments import wrappers
-from tf_agents.networks import q_network
-from tf_agents.agents import DqnAgent
-
-from tf_agents.replay_buffers import TFUniformReplayBuffer
-
-import matplotlib.pyplot as plt
-
-from tf_agents.environments import validate_py_environment
 
 
 def train():
+    num_iterations = 15000
 
-    # Environments wrapped in tf wrapper that ends after 100 steps.
+    initial_collect_steps = 1000
+    collect_steps_per_iteration = 1
+    replay_buffer_capacity = 100000
+
+    fc_layer_params = (100,)
+
+    batch_size = 64
+    learning_rate = 1e-3
+    gamma = 0.99
+    log_interval = 200
+
+    num_atoms = 51
+    min_q_value = -20
+    max_q_value = 20
+    n_step_update = 2
+
+    num_eval_episodes = 10
+    eval_interval = 1000
+
     train_py_env = wrappers.TimeLimit(KerduGameEnv(), duration=100)
     eval_py_env = wrappers.TimeLimit(KerduGameEnv(), duration=100)
 
     train_env = tf_py_environment.TFPyEnvironment(train_py_env)
     eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
 
-
-    # We get to layer creation of our DQN first by setting a single layer of 1000 neurons
-    fc_layer_params = (1000,)
-
-    q_net = q_network.QNetwork(
+    categorical_q_net = categorical_q_network.CategoricalQNetwork(
         train_env.observation_spec(),
         train_env.action_spec(),
+        num_atoms=num_atoms,
         fc_layer_params=fc_layer_params)
 
     optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate)
 
-    train_step_counter = tf.compat.v2.Variable(0)
+    train_step_counter = tf.Variable(0)
 
-    tf_agent = DqnAgent(
+    agent = categorical_dqn_agent.CategoricalDqnAgent(
         train_env.time_step_spec(),
         train_env.action_spec(),
-        q_network=q_net,
+        categorical_q_network=categorical_q_net,
         optimizer=optimizer,
+        min_q_value=min_q_value,
+        max_q_value=max_q_value,
+        n_step_update=n_step_update,
+        td_errors_loss_fn=common.element_wise_squared_loss,
+        gamma=gamma,
         train_step_counter=train_step_counter)
+    agent.initialize()
 
-    tf_agent.initialize()
+    def compute_avg_return(environment, policy, num_episodes=10):
 
+        total_return = 0.0
+        for _ in range(num_episodes):
 
-    # Replay buffer using default 1 batch size. It keeps track of the environment so that the DQN can compute loss
-    replay_buffer = TFUniformReplayBuffer(
-        data_spec=tf_agent.collect_data_spec,
-        batch_size=train_env.batch_size)
+            time_step = environment.reset()
+            episode_return = 0.0
 
-    replay_observer = [replay_buffer.add_batch]
+            while not time_step.is_last():
+                action_step = policy.action(time_step)
+                time_step = environment.step(action_step.action)
+                episode_return += time_step.reward
+            total_return += episode_return
 
-    # The dataset is used to actually train the agent
-    dataset = replay_buffer.as_dataset(
-        num_parallel_calls=3,
-        single_deterministic_pass=False,
-        sample_batch_size=batch_size,
-        num_steps=2).prefetch(3)
+        avg_return = total_return / num_episodes
+        return avg_return.numpy()[0]
 
-    iterator = iter(dataset)
+    random_policy = random_tf_policy.RandomTFPolicy(train_env.time_step_spec(),
+                                                    train_env.action_spec())
 
-    # Our driver simulates the game, stores actions and rewards in the replay buffer
-    train_metrics = [
-        tf_metrics.NumberOfEpisodes(),
-        tf_metrics.EnvironmentSteps(),
-        tf_metrics.AverageReturnMetric(),
-        tf_metrics.AverageEpisodeLengthMetric(),
-    ]
-
-    driver = dynamic_step_driver.DynamicStepDriver(
-        train_env,
-        tf_agent.collect_policy,
-        observers=replay_observer + train_metrics,
-        num_steps=1)
-
-    # Training
-    episode_len = []
-
-    final_time_step, policy_state = driver.run()
-
-    # for i in range(num_iterations):
-    #     final_time_step, _ = driver.run(final_time_step, policy_state)
-    #
-    #     experience, _ = next(iterator)
-    #     train_loss = tf_agent.train(experience=experience)
-    #     step = tf_agent.train_step_counter.numpy()
-    #
-    #     if step % log_interval == 0:
-    #         print('step = {0}: loss = {1}'.format(step, train_loss.loss))
-    #         episode_len.append(train_metrics[3].result().numpy())
-    #         print('Average episode length: {}'.format(train_metrics[3].result().numpy()))
-    #
-    #     if step % eval_interval == 0:
-    #         avg_return = tf.metrics.AverageReturnMetric(eval_env, tf_agent.policy, num_eval_episodes)  # originally compute_avg_return =
-    #         print('step = {0}: Average Return = {1}'.format(step, avg_return))
-    # plt.plot(episode_len)
-    # plt.show()
+    compute_avg_return(eval_env, random_policy, num_eval_episodes)
 
 
-num_iterations = 20000
 
-initial_collect_steps = 100
-collect_steps_per_iteration = 1
-replay_buffer_max_length = 100000
 
-batch_size = 64
-learning_rate = 0.001
-log_interval = 200
 
-num_eval_episodes = 10
-eval_interval = 1000
 
-env = KerduGameEnv()
 
-# train()
 
-time_step = np.array(0)
-batch = tf_agents.specs.ArraySpec(shape=(), dtype='int32', name='step_type')
-
-# print(tf_agents.specs.ArraySpec.check_array(time_step, batch))
-
-validate_py_environment(env, episodes=5)
+train()
 
 
 

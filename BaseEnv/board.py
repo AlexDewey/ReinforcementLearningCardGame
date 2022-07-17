@@ -50,6 +50,8 @@ class Board:
 
     def defend_card(self, boardDefended, row, column, card_used_idx):
 
+        print("P" + str(boardDefended) + " Rows: " + str(self.p1_rows) + " row: " + str(row) + " column: " + str(column))
+
         if boardDefended == 1:
             # Discard and remove both the hand card and row card
             self.deck.discard_card(self.p1_rows[row][column])

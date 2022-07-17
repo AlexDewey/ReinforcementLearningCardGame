@@ -53,7 +53,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
         return ts.restart(self._state)
 
     def post_action_logic(self, action_used):
-        if action_used != "pass":
+        if action_used[0] != "pass":
             self.playerPass[self.playerNum - 1] = False
         else:
             self.playerPass[self.playerNum - 1] = True
@@ -66,9 +66,11 @@ class KerduGameEnv(py_environment.PyEnvironment):
 
         if action_used[0] == "defend":
             if self.playerNum == 1:
-                self.board.defend_card(1, action_used[1], action_used[2], action_used[3])
+                if len(self.board.p1_rows[action_used[1]]) > action_used[2]:
+                    self.board.defend_card(1, action_used[1], action_used[2], action_used[3])
             else:
-                self.board.defend_card(2, action_used[1], action_used[2], action_used[3])
+                if len(self.board.p2_rows[action_used[1]]) > action_used[2]:
+                    self.board.defend_card(2, action_used[1], action_used[2], action_used[3])
 
         if self.playerNum == 2:
             self.playerNum = 1
@@ -98,9 +100,11 @@ class KerduGameEnv(py_environment.PyEnvironment):
         for row in self.board.p1_rows:
             if len(row) != 0:
                 self.card_in_play = True
+                break
         for row in self.board.p2_rows:
             if len(row) != 0:
                 self.card_in_play = True
+                break
 
     def interpret_action(self, action):
         action_used = ["pass"]
@@ -156,6 +160,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
     def _step(self, action):
 
         if self._episode_ended:
+            print("Ended!")
             return self.reset()
 
         # Completing action
@@ -166,6 +171,9 @@ class KerduGameEnv(py_environment.PyEnvironment):
                 action_used = ["pass"]
             else:
                 action_used = ["attack", 0]
+
+        print("NN Action used: " + str(action_used))
+        self.game_view(self.board)
 
         # Changing board based on action
         self.post_action_logic(action_used)
@@ -188,7 +196,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
                         action_used = ["defend", card_index, 0, column_index]
                         defence_found = True
                         break
-        elif len(self.board.p2_hand) > 0:  # If we have a card we can attack with
+        elif len(self.board.p2_hand) > 2:  # If we have a card we can attack with
             min_index = [0, self.board.p2_hand[0]]
             for hand_index, card in enumerate(self.board.p2_hand):
                 if card < min_index[1]:
@@ -196,6 +204,9 @@ class KerduGameEnv(py_environment.PyEnvironment):
             action_used = ["attack", min_index[0]]
         else:  # ... otherwise pass
             action_used = ["pass"]
+
+        print("Computer Action:" + str(action_used))
+        self.game_view(self.board)
 
         self.post_action_logic(action_used)
 
@@ -216,3 +227,28 @@ class KerduGameEnv(py_environment.PyEnvironment):
                 reward = -100
 
             return ts.termination(self._state, reward=reward)
+
+    def game_view(self, board):
+        print("==NN Hand===")
+        for card in board.p1_hand:
+            print(card + 2, end=" ")
+        print(" ")
+        print("==NN Board==")
+        for row in board.p1_rows:
+            print("-", end=" ")
+            for card in row:
+                print(card + 2, end=" ")
+            print(" ")
+        print("============")
+        print("==ENV Hand===")
+        for card in board.p2_hand:
+            print(card + 2, end=" ")
+        print(" ")
+        print("==ENV Board==")
+        for row in board.p2_rows:
+            print("-", end=" ")
+            for card in row:
+                print(card + 2, end=" ")
+            print(" ")
+        print("============")
+        print("\n\n\n\n")
