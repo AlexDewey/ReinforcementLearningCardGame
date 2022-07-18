@@ -59,6 +59,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
             self.playerPass[self.playerNum - 1] = True
 
         if action_used[0] == "attack":
+            # todo: self.board.attack_card(2, self.board.p1_hand[action_used[1]]), IndexError: list index out of range
             if self.playerNum == 1:
                 self.board.attack_card(2, self.board.p1_hand[action_used[1]])
             else:
@@ -123,12 +124,12 @@ class KerduGameEnv(py_environment.PyEnvironment):
                         return None
                     else:
                         action_used = ["defend", hand - 1, row, column]
-        elif 100 <= action <= 105:
-            if action - 99 > len(self.board.p1_hand):
-                return None
-            else:
+        elif 100 <= action <= 104:
+            if action - 100 < len(self.board.p1_hand):
                 action_used = ["attack", action - 100]
-        elif action == 106:
+            else:
+                return None
+        elif action == 105:
             if not self.card_in_play:
                 action_used = ["attack", 0]
             else:

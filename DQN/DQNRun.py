@@ -26,13 +26,13 @@ from tf_agents.environments import wrappers
 
 
 def train():
-    num_iterations = 15000
+    num_iterations = 150000
 
     initial_collect_steps = 1000
     collect_steps_per_iteration = 1
     replay_buffer_capacity = 100000
 
-    fc_layer_params = (100,)
+    fc_layer_params = (1000,)
 
     batch_size = 64
     learning_rate = 1e-3
@@ -161,6 +161,8 @@ def train():
     plt.ylabel('Average Return')
     plt.xlabel('Step')
     plt.ylim(top=550)
+
+    plt.show()
 
 
 train()
