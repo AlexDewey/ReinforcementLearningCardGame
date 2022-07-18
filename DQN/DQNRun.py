@@ -98,23 +98,69 @@ def train():
 
     compute_avg_return(eval_env, random_policy, num_eval_episodes)
 
+    replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
+        data_spec=agent.collect_data_spec,
+        batch_size=train_env.batch_size,
+        max_length=replay_buffer_capacity)
 
+    def collect_step(environment, policy):
+        time_step = environment.current_time_step()
+        action_step = policy.action(time_step)
+        next_time_step = environment.step(action_step.action)
+        traj = trajectory.from_transition(time_step, action_step, next_time_step)
 
+        # Add trajectory to the replay buffer
+        replay_buffer.add_batch(traj)
 
+    for _ in range(initial_collect_steps):
+        collect_step(train_env, random_policy)
 
+    # This loop is so common in RL, that we provide standard implementations of
+    # these. For more details see the drivers module.
 
+    # Dataset generates trajectories with shape [BxTx...] where
+    # T = n_step_update + 1.
+    dataset = replay_buffer.as_dataset(
+        num_parallel_calls=3, sample_batch_size=batch_size,
+        num_steps=n_step_update + 1).prefetch(3)
+
+    iterator = iter(dataset)
+
+    # (Optional) Optimize by wrapping some of the code in a graph using TF function.
+    agent.train = common.function(agent.train)
+
+    # Reset the train step
+    agent.train_step_counter.assign(0)
+
+    # Evaluate the agent's policy once before training.
+    avg_return = compute_avg_return(eval_env, agent.policy, num_eval_episodes)
+    returns = [avg_return]
+
+    for _ in range(num_iterations):
+
+        # Collect a few steps using collect_policy and save to the replay buffer.
+        for _ in range(collect_steps_per_iteration):
+            collect_step(train_env, agent.collect_policy)
+
+        # Sample a batch of data from the buffer and update the agent's network.
+        experience, unused_info = next(iterator)
+        train_loss = agent.train(experience)
+
+        step = agent.train_step_counter.numpy()
+
+        if step % log_interval == 0:
+            print('step = {0}: loss = {1}'.format(step, train_loss.loss))
+
+        if step % eval_interval == 0:
+            avg_return = compute_avg_return(eval_env, agent.policy, num_eval_episodes)
+            print('step = {0}: Average Return = {1:.2f}'.format(step, avg_return))
+            returns.append(avg_return)
+
+    steps = range(0, num_iterations + 1, eval_interval)
+    plt.plot(steps, returns)
+    plt.ylabel('Average Return')
+    plt.xlabel('Step')
+    plt.ylim(top=550)
 
 
 train()
-
-
-
-
-
-
-
-
-
-
-
-

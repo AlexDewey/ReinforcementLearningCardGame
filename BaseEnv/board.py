@@ -48,9 +48,7 @@ class Board:
             self.p2_rows[row_pos].append(cardValue)
             self.p1_hand.remove(cardValue)
 
-    def defend_card(self, boardDefended, row, column, card_used_idx):
-
-        print("P" + str(boardDefended) + " Rows: " + str(self.p1_rows) + " row: " + str(row) + " column: " + str(column))
+    def defend_card(self, boardDefended, card_used_idx, row, column):
 
         if boardDefended == 1:
             # Discard and remove both the hand card and row card

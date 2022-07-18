@@ -66,10 +66,10 @@ class KerduGameEnv(py_environment.PyEnvironment):
 
         if action_used[0] == "defend":
             if self.playerNum == 1:
-                if len(self.board.p1_rows[action_used[1]]) > action_used[2]:
+                if len(self.board.p1_rows[action_used[2]]) > action_used[3]:
                     self.board.defend_card(1, action_used[1], action_used[2], action_used[3])
             else:
-                if len(self.board.p2_rows[action_used[1]]) > action_used[2]:
+                if len(self.board.p2_rows[action_used[2]]) > action_used[3]:
                     self.board.defend_card(2, action_used[1], action_used[2], action_used[3])
 
         if self.playerNum == 2:
@@ -122,7 +122,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
                     if self.board.p1_hand[hand - 1] <= self.board.p1_rows[row][column]:
                         return None
                     else:
-                        action_used = ["defend", hand, row, column]
+                        action_used = ["defend", hand - 1, row, column]
         elif 100 <= action <= 105:
             if action - 99 > len(self.board.p1_hand):
                 return None
@@ -160,7 +160,6 @@ class KerduGameEnv(py_environment.PyEnvironment):
     def _step(self, action):
 
         if self._episode_ended:
-            print("Ended!")
             return self.reset()
 
         # Completing action
@@ -172,8 +171,8 @@ class KerduGameEnv(py_environment.PyEnvironment):
             else:
                 action_used = ["attack", 0]
 
-        print("NN Action used: " + str(action_used))
-        self.game_view(self.board)
+        # print("NN Action used: " + str(action_used))
+        # self.game_view(self.board)
 
         # Changing board based on action
         self.post_action_logic(action_used)
@@ -205,8 +204,8 @@ class KerduGameEnv(py_environment.PyEnvironment):
         else:  # ... otherwise pass
             action_used = ["pass"]
 
-        print("Computer Action:" + str(action_used))
-        self.game_view(self.board)
+        # print("Computer Action:" + str(action_used))
+        # self.game_view(self.board)
 
         self.post_action_logic(action_used)
 
@@ -251,4 +250,4 @@ class KerduGameEnv(py_environment.PyEnvironment):
                 print(card + 2, end=" ")
             print(" ")
         print("============")
-        print("\n\n\n\n")
+        print("\n\n\n")
