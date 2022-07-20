@@ -1,4 +1,4 @@
-from DQN.TFEnvironment import KerduGameEnv
+from C51.TFEnvironment import KerduGameEnv
 
 import base64
 import imageio
@@ -55,7 +55,7 @@ def train():
 
     fc_layer_params = (1000,)
 
-    # DQN Learning hyperparameters
+    # C51 Learning hyperparameters
     batch_size = 64
     learning_rate = 1e-3
     gamma = 0.99
@@ -78,7 +78,7 @@ def train():
     train_env = tf_py_environment.TFPyEnvironment(train_py_env)
     eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
 
-    # A categorical q network is required for our categorical DQN
+    # A categorical q network is required for our categorical C51
     categorical_q_net = categorical_q_network.CategoricalQNetwork(
         train_env.observation_spec(),
         train_env.action_spec(),
@@ -91,7 +91,7 @@ def train():
     # Track how many times the network was updated
     train_step_counter = tf.Variable(0)
 
-    # The main difference between this and a vainilla DQN is the min/max q difference
+    # The main difference between this and a vainilla C51 is the min/max q difference
     agent = categorical_dqn_agent.CategoricalDqnAgent(
         train_env.time_step_spec(),
         train_env.action_spec(),
