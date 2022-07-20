@@ -60,7 +60,10 @@ class KerduGameEnv(py_environment.PyEnvironment):
 
         if action_used[0] == "attack":
             if self.playerNum == 1:
-                self.board.attack_card(2, self.board.p1_hand[action_used[1]])
+                try:
+                    self.board.attack_card(2, self.board.p1_hand[action_used[1]])
+                except:
+                    self.playerPass[self.playerNum - 1] = True
             else:
                 self.board.attack_card(1, self.board.p2_hand[action_used[1]])
 
@@ -124,7 +127,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
                     else:
                         action_used = ["defend", hand - 1, row, column]
         elif 100 <= action <= 104:
-            if action - 100 < len(self.board.p1_hand):
+            if action - 100 < len(self.board.p1_hand) and len(self.board.p1_hand) > 0:
                 action_used = ["attack", action - 100]
             else:
                 return None
@@ -153,7 +156,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
 
         _state = np.concatenate((p1_board, np.concatenate((p2_board, np.concatenate((hand, opponent_num_cards))))))
         _state = _state.astype('int32')
-        _state = _state.reshape(590,)
+        _state = _state.reshape(590, )
 
         return _state
 

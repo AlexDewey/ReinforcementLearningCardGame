@@ -25,44 +25,73 @@ from tf_agents.utils import common
 from tf_agents.environments import wrappers
 
 
-def train():
-    num_iterations = 150000
+# Finding the average return over 20 episodes
+def compute_avg_return(environment, policy, num_episodes=20):
+    total_return = 0.0
+    for _ in range(num_episodes):
 
+        time_step = environment.reset()
+        episode_return = 0.0
+
+        while not time_step.is_last():
+            action_step = policy.action(time_step)
+            time_step = environment.step(action_step.action)
+            episode_return += time_step.reward
+        total_return += episode_return
+
+    avg_return = total_return / num_episodes
+    return avg_return.numpy()[0]
+
+
+def train():
+    # Number of iterations during training
+    num_iterations = 100000
+
+    # Initial collection for batch
     initial_collect_steps = 1000
     collect_steps_per_iteration = 1
+    # How many elements can be stored in the replay buffer
     replay_buffer_capacity = 100000
 
     fc_layer_params = (1000,)
 
+    # DQN Learning hyperparameters
     batch_size = 64
     learning_rate = 1e-3
     gamma = 0.99
     log_interval = 200
 
+    # Number of atoms to approximate probability distributions
     num_atoms = 51
     min_q_value = -20
     max_q_value = 20
+    # Computing error between current time step and next time step using 2 steps
     n_step_update = 2
 
     num_eval_episodes = 10
     eval_interval = 1000
 
+    # Environments are wrapped in a time limit and then a tf environment wrapper.
     train_py_env = wrappers.TimeLimit(KerduGameEnv(), duration=100)
     eval_py_env = wrappers.TimeLimit(KerduGameEnv(), duration=100)
 
     train_env = tf_py_environment.TFPyEnvironment(train_py_env)
     eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
 
+    # A categorical q network is required for our categorical DQN
     categorical_q_net = categorical_q_network.CategoricalQNetwork(
         train_env.observation_spec(),
         train_env.action_spec(),
         num_atoms=num_atoms,
         fc_layer_params=fc_layer_params)
 
+    # Adam optimizer used for optimization
     optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate)
 
+    # Track how many times the network was updated
     train_step_counter = tf.Variable(0)
 
+    # The main difference between this and a vainilla DQN is the min/max q difference
     agent = categorical_dqn_agent.CategoricalDqnAgent(
         train_env.time_step_spec(),
         train_env.action_spec(),
@@ -74,52 +103,32 @@ def train():
         td_errors_loss_fn=common.element_wise_squared_loss,
         gamma=gamma,
         train_step_counter=train_step_counter)
+
+    # Initialize C51
     agent.initialize()
 
-    def compute_avg_return(environment, policy, num_episodes=10):
-
-        total_return = 0.0
-        for _ in range(num_episodes):
-
-            time_step = environment.reset()
-            episode_return = 0.0
-
-            while not time_step.is_last():
-                action_step = policy.action(time_step)
-                time_step = environment.step(action_step.action)
-                episode_return += time_step.reward
-            total_return += episode_return
-
-        avg_return = total_return / num_episodes
-        return avg_return.numpy()[0]
-
+    # Establishing random policy
     random_policy = random_tf_policy.RandomTFPolicy(train_env.time_step_spec(),
                                                     train_env.action_spec())
-
-    compute_avg_return(eval_env, random_policy, num_eval_episodes)
-
+    # Saves observations and action pairs for training
     replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
         data_spec=agent.collect_data_spec,
         batch_size=train_env.batch_size,
         max_length=replay_buffer_capacity)
 
+    # Observes the environment, gets an action, gets the resulting time step, then saves the result to the buffer
     def collect_step(environment, policy):
         time_step = environment.current_time_step()
         action_step = policy.action(time_step)
         next_time_step = environment.step(action_step.action)
         traj = trajectory.from_transition(time_step, action_step, next_time_step)
-
-        # Add trajectory to the replay buffer
         replay_buffer.add_batch(traj)
 
+    # Undergoing initial steps to add to replay buffer before official training as it cannot start empty
     for _ in range(initial_collect_steps):
         collect_step(train_env, random_policy)
 
-    # This loop is so common in RL, that we provide standard implementations of
-    # these. For more details see the drivers module.
-
-    # Dataset generates trajectories with shape [BxTx...] where
-    # T = n_step_update + 1.
+    # The dataset takes our replay buffer and creates trajectories
     dataset = replay_buffer.as_dataset(
         num_parallel_calls=3, sample_batch_size=batch_size,
         num_steps=n_step_update + 1).prefetch(3)
@@ -136,6 +145,7 @@ def train():
     avg_return = compute_avg_return(eval_env, agent.policy, num_eval_episodes)
     returns = [avg_return]
 
+    # Actual training begins
     for _ in range(num_iterations):
 
         # Collect a few steps using collect_policy and save to the replay buffer.
@@ -160,7 +170,7 @@ def train():
     plt.plot(steps, returns)
     plt.ylabel('Average Return')
     plt.xlabel('Step')
-    plt.ylim(top=550)
+    plt.ylim(top=110)
 
     plt.show()
 
