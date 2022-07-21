@@ -25,8 +25,8 @@ from tf_agents.utils import common
 from tf_agents.environments import wrappers
 
 
-# Finding the average return over 20 episodes
-def compute_avg_return(environment, policy, num_episodes=20):
+# Finding the average return over 100 episodes
+def compute_avg_return(environment, policy, num_episodes=100):
     total_return = 0.0
     for _ in range(num_episodes):
 
@@ -44,8 +44,8 @@ def compute_avg_return(environment, policy, num_episodes=20):
 
 
 def train():
-    # Number of iterations during training
-    num_iterations = 100000
+    # Number of iterations during training, 5000000 was used with the original paper to show results
+    num_iterations = 5000000
 
     # Initial collection for batch
     initial_collect_steps = 1000
@@ -53,7 +53,7 @@ def train():
     # How many elements can be stored in the replay buffer
     replay_buffer_capacity = 100000
 
-    fc_layer_params = (1000,)
+    fc_layer_params = (800,)
 
     # C51 Learning hyperparameters
     batch_size = 64
@@ -61,7 +61,7 @@ def train():
     gamma = 0.99
     log_interval = 200
 
-    # Number of atoms to approximate probability distributions
+    # Number of atoms to approximate probability distributions, more the better
     num_atoms = 51
     min_q_value = -20
     max_q_value = 20
@@ -110,7 +110,9 @@ def train():
     # Establishing random policy
     random_policy = random_tf_policy.RandomTFPolicy(train_env.time_step_spec(),
                                                     train_env.action_spec())
-    # Saves observations and action pairs for training
+
+    # Saves observations and action pairs for training. As to not bias the network to specific situations these are fed
+    # in somewhat randomly
     replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
         data_spec=agent.collect_data_spec,
         batch_size=train_env.batch_size,
