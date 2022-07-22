@@ -8,10 +8,37 @@ from tf_agents.trajectories import time_step as ts
 from BaseEnv.board import Board
 
 
+def game_view(board):
+    print("==NN Hand===")
+    for card in board.p1_hand:
+        print(card + 2, end=" ")
+    print(" ")
+    print("==NN Board==")
+    for row in board.p1_rows:
+        print("-", end=" ")
+        for card in row:
+            print(card + 2, end=" ")
+        print(" ")
+    print("============")
+    print("==ENV Hand===")
+    for card in board.p2_hand:
+        print(card + 2, end=" ")
+    print(" ")
+    print("==ENV Board==")
+    for row in board.p2_rows:
+        print("-", end=" ")
+        for card in row:
+            print(card + 2, end=" ")
+        print(" ")
+    print("============")
+    print("\n\n\n")
+
+
 class KerduGameEnv(py_environment.PyEnvironment):
 
     def __init__(self):
         # pass (1), attack(5), defend(100) = 106
+        super().__init__()
         self._action_spec = array_spec.BoundedArraySpec(
             shape=(), dtype=np.int32, minimum=0, maximum=105, name='action')
         # boards (2), hand(65), opponent_num_cards(5) = 590
@@ -229,28 +256,3 @@ class KerduGameEnv(py_environment.PyEnvironment):
                 reward = -100
 
             return ts.termination(self._state, reward=reward)
-
-    def game_view(self, board):
-        print("==NN Hand===")
-        for card in board.p1_hand:
-            print(card + 2, end=" ")
-        print(" ")
-        print("==NN Board==")
-        for row in board.p1_rows:
-            print("-", end=" ")
-            for card in row:
-                print(card + 2, end=" ")
-            print(" ")
-        print("============")
-        print("==ENV Hand===")
-        for card in board.p2_hand:
-            print(card + 2, end=" ")
-        print(" ")
-        print("==ENV Board==")
-        for row in board.p2_rows:
-            print("-", end=" ")
-            for card in row:
-                print(card + 2, end=" ")
-            print(" ")
-        print("============")
-        print("\n\n\n")
