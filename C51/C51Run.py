@@ -1,3 +1,5 @@
+import os
+
 from C51.TFEnvironment import KerduGameEnv
 
 import matplotlib.pyplot as plt
@@ -7,7 +9,7 @@ import tensorflow as tf
 from tf_agents.agents.categorical_dqn import categorical_dqn_agent
 from tf_agents.environments import tf_py_environment
 from tf_agents.networks import categorical_q_network
-from tf_agents.policies import random_tf_policy
+from tf_agents.policies import random_tf_policy, policy_saver
 from tf_agents.replay_buffers import tf_uniform_replay_buffer
 from tf_agents.trajectories import trajectory
 from tf_agents.utils import common
@@ -141,7 +143,7 @@ def train():
     # Actual training begins
     for _ in range(num_iterations):
 
-        # Collect a few steps using collect_policy and save to the replay buffer.
+        # Collect a few steps using default agent greedy policy and save to the replay buffer.
         for _ in range(collect_steps_per_iteration):
             collect_step(train_env, agent.collect_policy)
 
@@ -158,6 +160,23 @@ def train():
             avg_return = compute_avg_return(eval_env, agent.policy, num_eval_episodes)
             print('step = {0}: Average Return = {1:.2f}'.format(step, avg_return))
             returns.append(avg_return)
+
+    # Saving agent using Checkpointer
+    checkpoint_dir = os.path.join('./SavedModels', 'checkpoint')
+    train_checkpointer = common.Checkpointer(
+        ckpt_dir=checkpoint_dir,
+        max_to_keep=1,
+        agent=agent,
+        policy=agent.policy,
+        replay_buffer=replay_buffer,
+        global_step=train_step_counter
+    )
+
+    policy_dir = os.path.join('./SavedModels', 'policy')
+    tf_policy_saver = policy_saver.PolicySaver(agent.policy)
+
+
+
 
     steps = range(0, num_iterations + 1, eval_interval)
     plt.plot(steps, returns)
