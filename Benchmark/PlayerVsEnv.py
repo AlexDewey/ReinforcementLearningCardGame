@@ -1,33 +1,55 @@
+import math
+
+import numpy as np
+
+from tf_agents.environments import py_environment
+from tf_agents.specs import array_spec
+from tf_agents.trajectories import time_step as ts
 from BaseEnv.board import Board
 
 
-class KerduScratch():
+def game_view(board):
+    print("==NN Hand===")
+    for card in board.p1_hand:
+        print(card + 2, end=" ")
+    print(" ")
+    print("==NN Board==")
+    for row in board.p1_rows:
+        print("-", end=" ")
+        for card in row:
+            print(card + 2, end=" ")
+        print(" ")
+    print("============")
+    print("==ENV Hand===")
+    for card in board.p2_hand:
+        print(card + 2, end=" ")
+    print(" ")
+    print("==ENV Board==")
+    for row in board.p2_rows:
+        print("-", end=" ")
+        for card in row:
+            print(card + 2, end=" ")
+        print(" ")
+    print("============")
+    print("\n\n\n")
+
+
+class KerduGameEnv(py_environment.PyEnvironment):
 
     def __init__(self):
-        # pass (1), attack(5), defend(100) = 106
-        self._episode_ended = False
-
         # Board for game, P1 is NN and P2 is ENV
         self.board = Board()
 
         # State needs to be our observation of shape=(590,)
         self.board.fill_hand(1)
         self.board.fill_hand(2)
-        self._state = self.transcribe_state()
 
-        self.players = ["NN", "ENV"]
+        self.players = ["Player", "ENV"]
         self.playerPass = [True, True]
         self.card_in_play = False
         self.playerNum = 1
 
-    def action_spec(self):
-        return self._action_spec
-
-    def observation_spec(self):
-        return self._observation_spec
-
     def _reset(self):
-        self._episode_ended = False
         # Initializes the board and gives players cards
         self.board = Board()
         self.playerPass = [True, True]
@@ -36,8 +58,6 @@ class KerduScratch():
         self.pre_action_logic()
         self.board.fill_hand(1)
         self.board.fill_hand(2)
-        self._state = self.transcribe_state()
-        return ts.restart(self._state)
 
     def post_action_logic(self, action_used):
         if action_used[0] != "pass":
@@ -73,7 +93,6 @@ class KerduScratch():
             # End game if cards in first row
             if len(self.board.p1_rows[0]) != 0 or len(self.board.p2_rows[0]) != 0:
                 self.board.gameOver = True
-                self._episode_ended = True
             # Move all cards up a row
             for index in range(1, 4):
                 self.board.p1_rows[index - 1] = self.board.p1_rows[index]
@@ -149,11 +168,8 @@ class KerduScratch():
 
     def _step(self, action):
 
-        if self._episode_ended:
-            return self.reset()
-
         # Completing action
-        action_used = self.interpret_action(action)
+        action_used = action
 
         if action_used is None:
             if self.card_in_play:
@@ -194,19 +210,14 @@ class KerduScratch():
         else:  # ... otherwise pass
             action_used = ["pass"]
 
-        # print("Computer Action:" + str(action_used))
-        # self.game_view(self.board)
-
         self.post_action_logic(action_used)
 
         self.pre_action_logic()
 
-        self._state = self.transcribe_state()
-
         if self._episode_ended is False:
             reward = 1
 
-            return ts.transition(self._state, reward=reward, discount=1.0)
+            return reward
         else:
             if len(self.board.p1_rows[0]) != 0 and len(self.board.p2_rows[0]) != 0:
                 reward = 10
@@ -215,4 +226,4 @@ class KerduScratch():
             else:  # Else loss and there's a card in p1_rows
                 reward = -100
 
-            return ts.termination(self._state, reward=reward)
+            return reward
