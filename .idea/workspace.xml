@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4f21ec5e-c4dc-4b0b-835a-9c25e1d9f386" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/Benchmark/PlayerVSAgent.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Benchmark/PlayerVSAgent.py" beforeDir="false" afterPath="$PROJECT_DIR$/Benchmark/PlayerVSAgent.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/C51/C51Run.py" beforeDir="false" afterPath="$PROJECT_DIR$/C51/C51Run.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -127,6 +128,11 @@
           <url>file://$USER_HOME$/AppData/Local/Programs/Python/Python38/Lib/site-packages/numpy/core/fromnumeric.py</url>
           <line>2153</line>
           <option name="timeStamp" value="16" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Benchmark/PlayerVSAgent.py</url>
+          <line>20</line>
+          <option name="timeStamp" value="17" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

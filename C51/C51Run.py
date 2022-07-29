@@ -37,7 +37,7 @@ def compute_avg_return(environment, policy, num_episodes=100):
 
 def train():
     # Number of iterations during training, 5000000 was used with the original paper to show results
-    num_iterations = 100000
+    num_iterations = 3000
 
     # Initial collection for batch
     initial_collect_steps = 1000
@@ -126,7 +126,7 @@ def train():
     # The dataset takes our replay buffer and creates trajectories
     dataset = replay_buffer.as_dataset(
         num_parallel_calls=3, sample_batch_size=batch_size,
-        num_steps=n_step_update + 1).prefetch(3)
+        num_steps=n_step_update + 1, single_deterministic_pass=False).prefetch(3)
 
     iterator = iter(dataset)
 
@@ -161,19 +161,9 @@ def train():
             print('step = {0}: Average Return = {1:.2f}'.format(step, avg_return))
             returns.append(avg_return)
 
-    # Saving agent using Checkpointer
-    checkpoint_dir = os.path.join('./SavedModels', 'checkpoint')
-    train_checkpointer = common.Checkpointer(
-        ckpt_dir=checkpoint_dir,
-        max_to_keep=1,
-        agent=agent,
-        policy=agent.policy,
-        replay_buffer=replay_buffer,
-        global_step=train_step_counter
-    )
-
-    policy_dir = os.path.join('./SavedModels', 'policy')
+    policy_dir = os.path.join('../SavedModels', 'policy')
     tf_policy_saver = policy_saver.PolicySaver(agent.policy)
+    tf_policy_saver.save(policy_dir)
 
 
 
