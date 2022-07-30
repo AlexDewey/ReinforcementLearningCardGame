@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import tensorflow as tf
+from tf_agents.trajectories import time_step as ts
 
 from tf_agents.agents.categorical_dqn import categorical_dqn_agent
 from tf_agents.environments import tf_py_environment
@@ -50,8 +51,6 @@ def game_view(board):
 class KerduGamePVN:
 
     def __init__(self):
-        saved_policy = tf.saved_model.load('../SavedModels/policy')
-
         # Board for game, P1 is NN and P2 is Player
         self.board = Board()
 
@@ -63,8 +62,6 @@ class KerduGamePVN:
         self.playerPass = [True, True]
         self.card_in_play = False
         self.playerNum = 1
-
-        print("test")
 
     def post_action_logic(self, action_used):
         if action_used[0] != "pass":
@@ -192,6 +189,19 @@ class KerduGamePVN:
 
         return _state
 
+    def _reset(self):
+        self._episode_ended = False
+        # Initializes the board and gives players cards
+        self.board = Board()
+        self.playerPass = [True, True]
+        self.card_in_play = False
+        self.playerNum = 1
+        self.pre_action_logic()
+        self.board.fill_hand(1)
+        self.board.fill_hand(2)
+        self._state = self.transcribe_state()
+        return ts.restart(self._state)
+
     def _step(self, action):
 
         # Completing action
@@ -244,4 +254,14 @@ class KerduGamePVN:
         self.pre_action_logic()
 
 
-game = KerduGamePVN()
+
+if __name__ == "__main__":
+    saved_policy = tf.saved_model.load('../SavedModels/policy')
+    game = KerduGamePVN()
+    time_step = game.reset()
+
+    # todo: change while case to view board
+    while not game.board.gameOver:
+        action_step = saved_policy.action(time_step)
+        time_step = game.step(action_step.action)
+        

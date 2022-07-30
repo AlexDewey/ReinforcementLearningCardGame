@@ -37,7 +37,7 @@ def compute_avg_return(environment, policy, num_episodes=100):
 
 def train():
     # Number of iterations during training, 5000000 was used with the original paper to show results
-    num_iterations = 5000000
+    num_iterations = 100000
 
     # Initial collection for batch
     initial_collect_steps = 1000
