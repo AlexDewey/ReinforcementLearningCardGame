@@ -3,6 +3,8 @@ import os
 
 from BaseEnv.board import Board
 from C51.TFEnvironment import KerduGameEnv
+from tf_agents.environments import py_environment
+from tf_agents.specs import array_spec
 
 import matplotlib.pyplot as plt
 
@@ -48,20 +50,50 @@ def game_view(board):
     print("\n\n\n")
 
 
-class KerduGamePVN:
+class KerduGamePVN(py_environment.PyEnvironment):
 
     def __init__(self):
-        # Board for game, P1 is NN and P2 is Player
+        # pass (1), attack(5), defend(100) = 106
+        super().__init__()
+        self._action_spec = array_spec.BoundedArraySpec(
+            shape=(), dtype=np.int32, minimum=0, maximum=105, name='action')
+        # boards (2), hand(65), opponent_num_cards(5) = 590
+        self._observation_spec = array_spec.BoundedArraySpec(
+            shape=(590,), dtype=np.int32, minimum=0, maximum=1, name='observation')
+
+        self._episode_ended = False
+
+        # Board for game, P1 is NN and P2 is ENV
         self.board = Board()
 
         # State needs to be our observation of shape=(590,)
         self.board.fill_hand(1)
         self.board.fill_hand(2)
+        self._state = self.transcribe_state()
 
-        self.players = ["NN", "ENV"]
+        self.players = ["NN", "P1"]
         self.playerPass = [True, True]
         self.card_in_play = False
         self.playerNum = 1
+
+    def action_spec(self):
+        return self._action_spec
+
+    def observation_spec(self):
+        return self._observation_spec
+
+    def _reset(self):
+        self._episode_ended = False
+        # Initializes the board and gives players cards
+        self.board = Board()
+        self.playerPass = [True, True]
+        self.card_in_play = False
+        self.playerNum = 1
+        self.pre_action_logic()
+        self.board.fill_hand(1)
+        self.board.fill_hand(2)
+        self._state = self.transcribe_state()
+        return ts.restart(self._state)
 
     def post_action_logic(self, action_used):
         if action_used[0] != "pass":
@@ -97,6 +129,7 @@ class KerduGamePVN:
             # End game if cards in first row
             if len(self.board.p1_rows[0]) != 0 or len(self.board.p2_rows[0]) != 0:
                 self.board.gameOver = True
+                self._episode_ended = True
             # Move all cards up a row
             for index in range(1, 4):
                 self.board.p1_rows[index - 1] = self.board.p1_rows[index]
@@ -168,41 +201,12 @@ class KerduGamePVN:
         _state = _state.astype('int32')
         _state = _state.reshape(590, )
 
-    def transcribe_state(self):
-        p1_board = np.zeros(260).reshape(-1, 1)
-        for row_index, row in enumerate(self.board.p1_rows):
-            for column_index, card_value in enumerate(row):
-                p1_board[row_index + (4 * column_index) + (20 * card_value)] = 1
-        p2_board = np.zeros(260).reshape(-1, 1)
-        for row_index, row in enumerate(self.board.p2_rows):
-            for column_index, card_value in enumerate(row):
-                p2_board[row_index + (4 * column_index) + (20 * card_value)] = 1
-        hand = np.zeros(65).reshape(-1, 1)
-        for hand_index, card_value in enumerate(self.board.p1_hand):
-            hand[hand_index + (5 * card_value)] = 1
-        opponent_num_cards = np.zeros(5).reshape(-1, 1)
-        opponent_num_cards[len(self.board.p2_hand) - 1] = 1
-
-        _state = np.concatenate((p1_board, np.concatenate((p2_board, np.concatenate((hand, opponent_num_cards))))))
-        _state = _state.astype('int32')
-        _state = _state.reshape(590, )
-
         return _state
 
-    def _reset(self):
-        self._episode_ended = False
-        # Initializes the board and gives players cards
-        self.board = Board()
-        self.playerPass = [True, True]
-        self.card_in_play = False
-        self.playerNum = 1
-        self.pre_action_logic()
-        self.board.fill_hand(1)
-        self.board.fill_hand(2)
-        self._state = self.transcribe_state()
-        return ts.restart(self._state)
-
     def _step(self, action):
+
+        if self._episode_ended:
+            return self.reset()
 
         # Completing action
         action_used = self.interpret_action(action)
@@ -213,8 +217,8 @@ class KerduGamePVN:
             else:
                 action_used = ["attack", 0]
 
-        print("NN Action: " + str(action_used))
-        game_view(self.board)
+        # print("NN Action used: " + str(action_used))
+        # self.game_view(self.board)
 
         # Changing board based on action
         self.post_action_logic(action_used)
@@ -246,22 +250,38 @@ class KerduGamePVN:
         else:  # ... otherwise pass
             action_used = ["pass"]
 
-        print("Player Action:" + str(action_used))
-        game_view(self.board)
+        # print("Computer Action:" + str(action_used))
+        # self.game_view(self.board)
 
         self.post_action_logic(action_used)
 
         self.pre_action_logic()
 
+        self._state = self.transcribe_state()
+
+        if self._episode_ended is False:
+            reward = 1
+
+            return ts.transition(self._state, reward=reward, discount=1.0)
+        else:
+            if len(self.board.p1_rows[0]) != 0 and len(self.board.p2_rows[0]) != 0:
+                reward = 10
+            elif len(self.board.p2_rows[0]) != 0:
+                reward = 100
+            else:  # Else loss and there's a card in p1_rows
+                reward = -100
+
+            return ts.termination(self._state, reward=reward)
 
 
+# todo: refer to https://github.com/tensorflow/agents/blob/master/docs/tutorials/10_checkpointer_policysaver_tutorial.ipynb
 if __name__ == "__main__":
     saved_policy = tf.saved_model.load('../SavedModels/policy')
-    game = KerduGamePVN()
-    time_step = game.reset()
+    game_py_env = wrappers.TimeLimit(KerduGamePVN(), duration=1000)
+    game_env = tf_py_environment.TFPyEnvironment(game_py_env)
+    time_step = game_py_env.reset()
+    policy_state = saved_policy.get_initial_state(game_py_env.batch_size)
 
-    # todo: change while case to view board
-    while not game.board.gameOver:
-        action_step = saved_policy.action(time_step)
-        time_step = game.step(action_step.action)
-        
+    while not game_py_env.board.gameOver:
+        action_step, policy_state = saved_policy.action(time_step, policy_state)
+        time_step = game_py_env.step(action_step.action)
