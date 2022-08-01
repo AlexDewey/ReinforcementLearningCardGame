@@ -59,7 +59,7 @@ def train():
     min_q_value = -100
     max_q_value = 100
     # Computing error between current time step and next time step using 2 steps
-    n_step_update = 2
+    n_step_update = 4
 
     num_eval_episodes = 10
     eval_interval = 1000
