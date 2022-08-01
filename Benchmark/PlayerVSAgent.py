@@ -217,8 +217,8 @@ class KerduGamePVN(py_environment.PyEnvironment):
             else:
                 action_used = ["attack", 0]
 
-        # print("NN Action used: " + str(action_used))
-        # self.game_view(self.board)
+        print("NN Action used: " + str(action_used))
+        game_view(self.board)
 
         # Changing board based on action
         self.post_action_logic(action_used)
@@ -250,8 +250,8 @@ class KerduGamePVN(py_environment.PyEnvironment):
         else:  # ... otherwise pass
             action_used = ["pass"]
 
-        # print("Computer Action:" + str(action_used))
-        # self.game_view(self.board)
+        print("Person Action:" + str(action_used))
+        game_view(self.board)
 
         self.post_action_logic(action_used)
 
@@ -274,14 +274,15 @@ class KerduGamePVN(py_environment.PyEnvironment):
             return ts.termination(self._state, reward=reward)
 
 
-# todo: refer to https://github.com/tensorflow/agents/blob/master/docs/tutorials/10_checkpointer_policysaver_tutorial.ipynb
 if __name__ == "__main__":
     saved_policy = tf.saved_model.load('../SavedModels/policy')
-    game_py_env = wrappers.TimeLimit(KerduGamePVN(), duration=1000)
-    game_env = tf_py_environment.TFPyEnvironment(game_py_env)
-    time_step = game_py_env.reset()
-    policy_state = saved_policy.get_initial_state(game_py_env.batch_size)
 
-    while not game_py_env.board.gameOver:
-        action_step, policy_state = saved_policy.action(time_step, policy_state)
-        time_step = game_py_env.step(action_step.action)
+    eval_py_env = wrappers.TimeLimit(KerduGamePVN(), duration=1000)
+    eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
+
+    num_games = 10
+    for _ in range(num_games):
+        time_step = eval_env.reset()
+        while not time_step.is_last():
+            action_step = saved_policy.action(time_step)
+            time_step = eval_env.step(action_step.action)
