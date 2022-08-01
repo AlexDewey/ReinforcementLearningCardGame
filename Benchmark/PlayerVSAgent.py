@@ -130,16 +130,17 @@ class KerduGamePVN(py_environment.PyEnvironment):
             if len(self.board.p1_rows[0]) != 0 or len(self.board.p2_rows[0]) != 0:
                 self.board.gameOver = True
                 self._episode_ended = True
-            # Move all cards up a row
-            for index in range(1, 4):
-                self.board.p1_rows[index - 1] = self.board.p1_rows[index]
-                self.board.p2_rows[index - 1] = self.board.p2_rows[index]
-            self.board.p1_rows[3] = []
-            self.board.p2_rows[3] = []
-            # Refill hands
-            for index in range(0, len(self.players)):
-                self.board.fill_hand(index + 1)
-                self.playerPass[index] = False
+            else:
+                # Move all cards up a row
+                for index in range(1, 4):
+                    self.board.p1_rows[index - 1] = self.board.p1_rows[index]
+                    self.board.p2_rows[index - 1] = self.board.p2_rows[index]
+                self.board.p1_rows[3] = []
+                self.board.p2_rows[3] = []
+                # Refill hands
+                for index in range(0, len(self.players)):
+                    self.board.fill_hand(index + 1)
+                    self.playerPass[index] = False
 
         # If there's a card on the board, the player can pass, otherwise no
         self.card_in_play = False
@@ -230,25 +231,27 @@ class KerduGamePVN(py_environment.PyEnvironment):
         else:
             action_used = ["attack", 0]
 
+        # todo: Get action_used from user
+
         # If immediate threat, defeat
-        defence_found = False
-        if len(self.board.p2_rows[0]) > 0:
-            for column_index, attacking_card in enumerate(self.board.p2_rows[0]):
-                if defence_found:
-                    break
-                for card_index, card_in_hand in enumerate(self.board.p2_hand):
-                    if card_in_hand > attacking_card:
-                        action_used = ["defend", card_index, 0, column_index]
-                        defence_found = True
-                        break
-        elif len(self.board.p2_hand) > 2:  # If we have a card we can attack with
-            min_index = [0, self.board.p2_hand[0]]
-            for hand_index, card in enumerate(self.board.p2_hand):
-                if card < min_index[1]:
-                    min_index = [hand_index, card]
-            action_used = ["attack", min_index[0]]
-        else:  # ... otherwise pass
-            action_used = ["pass"]
+        # defence_found = False
+        # if len(self.board.p2_rows[0]) > 0:
+        #     for column_index, attacking_card in enumerate(self.board.p2_rows[0]):
+        #         if defence_found:
+        #             break
+        #         for card_index, card_in_hand in enumerate(self.board.p2_hand):
+        #             if card_in_hand > attacking_card:
+        #                 action_used = ["defend", card_index, 0, column_index]
+        #                 defence_found = True
+        #                 break
+        # elif len(self.board.p2_hand) > 2:  # If we have a card we can attack with
+        #     min_index = [0, self.board.p2_hand[0]]
+        #     for hand_index, card in enumerate(self.board.p2_hand):
+        #         if card < min_index[1]:
+        #             min_index = [hand_index, card]
+        #     action_used = ["attack", min_index[0]]
+        # else:  # ... otherwise pass
+        #     action_used = ["pass"]
 
         print("Person Action:" + str(action_used))
         game_view(self.board)

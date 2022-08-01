@@ -1,11 +1,27 @@
 import math
+import os
+
+from BaseEnv.board import Board
+from C51.TFEnvironment import KerduGameEnv
+from tf_agents.environments import py_environment
+from tf_agents.specs import array_spec
+
+import matplotlib.pyplot as plt
 
 import numpy as np
 
-from tf_agents.environments import py_environment
-from tf_agents.specs import array_spec
+import tensorflow as tf
 from tf_agents.trajectories import time_step as ts
-from BaseEnv.board import Board
+
+from tf_agents.agents.categorical_dqn import categorical_dqn_agent
+from tf_agents.environments import tf_py_environment
+from tf_agents.networks import categorical_q_network
+from tf_agents.policies import random_tf_policy, policy_saver
+from tf_agents.replay_buffers import tf_uniform_replay_buffer
+from tf_agents.trajectories import trajectory
+from tf_agents.utils import common
+
+from tf_agents.environments import wrappers
 
 
 def game_view(board):
@@ -34,22 +50,40 @@ def game_view(board):
     print("\n\n\n")
 
 
-class KerduGameEnv(py_environment.PyEnvironment):
+class KerduGamePVN(py_environment.PyEnvironment):
 
     def __init__(self):
+        # pass (1), attack(5), defend(100) = 106
+        super().__init__()
+        self._action_spec = array_spec.BoundedArraySpec(
+            shape=(), dtype=np.int32, minimum=0, maximum=105, name='action')
+        # boards (2), hand(65), opponent_num_cards(5) = 590
+        self._observation_spec = array_spec.BoundedArraySpec(
+            shape=(590,), dtype=np.int32, minimum=0, maximum=1, name='observation')
+
+        self._episode_ended = False
+
         # Board for game, P1 is NN and P2 is ENV
         self.board = Board()
 
         # State needs to be our observation of shape=(590,)
         self.board.fill_hand(1)
         self.board.fill_hand(2)
+        self._state = self.transcribe_state()
 
-        self.players = ["Player", "ENV"]
+        self.players = ["NN", "ENV"]
         self.playerPass = [True, True]
         self.card_in_play = False
         self.playerNum = 1
 
+    def action_spec(self):
+        return self._action_spec
+
+    def observation_spec(self):
+        return self._observation_spec
+
     def _reset(self):
+        self._episode_ended = False
         # Initializes the board and gives players cards
         self.board = Board()
         self.playerPass = [True, True]
@@ -58,6 +92,8 @@ class KerduGameEnv(py_environment.PyEnvironment):
         self.pre_action_logic()
         self.board.fill_hand(1)
         self.board.fill_hand(2)
+        self._state = self.transcribe_state()
+        return ts.restart(self._state)
 
     def post_action_logic(self, action_used):
         if action_used[0] != "pass":
@@ -93,16 +129,18 @@ class KerduGameEnv(py_environment.PyEnvironment):
             # End game if cards in first row
             if len(self.board.p1_rows[0]) != 0 or len(self.board.p2_rows[0]) != 0:
                 self.board.gameOver = True
-            # Move all cards up a row
-            for index in range(1, 4):
-                self.board.p1_rows[index - 1] = self.board.p1_rows[index]
-                self.board.p2_rows[index - 1] = self.board.p2_rows[index]
-            self.board.p1_rows[3] = []
-            self.board.p2_rows[3] = []
-            # Refill hands
-            for index in range(0, len(self.players)):
-                self.board.fill_hand(index + 1)
-                self.playerPass[index] = False
+                self._episode_ended = True
+            else:
+                # Move all cards up a row
+                for index in range(1, 4):
+                    self.board.p1_rows[index - 1] = self.board.p1_rows[index]
+                    self.board.p2_rows[index - 1] = self.board.p2_rows[index]
+                self.board.p1_rows[3] = []
+                self.board.p2_rows[3] = []
+                # Refill hands
+                for index in range(0, len(self.players)):
+                    self.board.fill_hand(index + 1)
+                    self.playerPass[index] = False
 
         # If there's a card on the board, the player can pass, otherwise no
         self.card_in_play = False
@@ -168,8 +206,11 @@ class KerduGameEnv(py_environment.PyEnvironment):
 
     def _step(self, action):
 
+        if self._episode_ended:
+            return self.reset()
+
         # Completing action
-        action_used = action
+        action_used = self.interpret_action(action)
 
         if action_used is None:
             if self.card_in_play:
@@ -177,8 +218,8 @@ class KerduGameEnv(py_environment.PyEnvironment):
             else:
                 action_used = ["attack", 0]
 
-        # print("NN Action used: " + str(action_used))
-        # self.game_view(self.board)
+        print("NN Action used: " + str(action_used))
+        game_view(self.board)
 
         # Changing board based on action
         self.post_action_logic(action_used)
@@ -210,14 +251,19 @@ class KerduGameEnv(py_environment.PyEnvironment):
         else:  # ... otherwise pass
             action_used = ["pass"]
 
+        print("Env Action:" + str(action_used))
+        game_view(self.board)
+
         self.post_action_logic(action_used)
 
         self.pre_action_logic()
 
+        self._state = self.transcribe_state()
+
         if self._episode_ended is False:
             reward = 1
 
-            return reward
+            return ts.transition(self._state, reward=reward, discount=1.0)
         else:
             if len(self.board.p1_rows[0]) != 0 and len(self.board.p2_rows[0]) != 0:
                 reward = 10
@@ -226,4 +272,18 @@ class KerduGameEnv(py_environment.PyEnvironment):
             else:  # Else loss and there's a card in p1_rows
                 reward = -100
 
-            return reward
+            return ts.termination(self._state, reward=reward)
+
+
+if __name__ == "__main__":
+    saved_policy = tf.saved_model.load('../SavedModels/policy')
+
+    eval_py_env = wrappers.TimeLimit(KerduGamePVN(), duration=1000)
+    eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
+
+    num_games = 10
+    for _ in range(num_games):
+        time_step = eval_env.reset()
+        while not time_step.is_last():
+            action_step = saved_policy.action(time_step)
+            time_step = eval_env.step(action_step.action)
