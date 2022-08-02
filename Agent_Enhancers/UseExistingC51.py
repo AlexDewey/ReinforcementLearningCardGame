@@ -1,6 +1,6 @@
 import os
 
-from Environments.BasicTFEnvironment import KerduGameEnv
+from Environments.BasicEnv import KerduGameEnv
 
 import matplotlib.pyplot as plt
 
@@ -102,7 +102,7 @@ def train():
     # Initialize C51
     agent.initialize()
 
-    # Establishing random policy
+    # Establishing random policy800
     random_policy = random_tf_policy.RandomTFPolicy(train_env.time_step_spec(),
                                                     train_env.action_spec())
 
@@ -138,14 +138,14 @@ def train():
     # Reset the train step
     agent.train_step_counter.assign(0)
 
-    # Evaluate the agent's policy once before training.
+    # Evaluate the agent's policy800 once before training.
     avg_return = compute_avg_return(eval_env, agent.policy, num_eval_episodes)
     returns = [avg_return]
 
     # Actual training begins
     for _ in range(num_iterations):
 
-        # Collect a few steps using default agent greedy policy and save to the replay buffer.
+        # Collect a few steps using default agent greedy policy800 and save to the replay buffer.
         for _ in range(collect_steps_per_iteration):
             collect_step(train_env, agent.collect_policy)
 
@@ -163,7 +163,7 @@ def train():
             print('step = {0}: Average Return = {1:.2f}'.format(step, avg_return))
             returns.append(avg_return)
 
-    policy_dir = os.path.join('../SavedModels', 'policy')
+    policy_dir = os.path.join('../SavedModels', 'policy800')
     tf_policy_saver = policy_saver.PolicySaver(agent.policy)
     tf_policy_saver.save(policy_dir)
 

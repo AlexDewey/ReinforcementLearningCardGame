@@ -61,7 +61,7 @@ class KerduGamePVN(py_environment.PyEnvironment):
         self.board.fill_hand(2)
         self._state = self.transcribe_state()
 
-        self.players = ["NN", "P1"]
+        self.players = ["NN", "ENV"]
         self.playerPass = [True, True]
         self.card_in_play = False
         self.playerNum = 1
@@ -221,29 +221,27 @@ class KerduGamePVN(py_environment.PyEnvironment):
         else:
             action_used = ["attack", 0]
 
-        # todo: Get action_used from user
-
         # If immediate threat, defeat
-        # defence_found = False
-        # if len(self.board.p2_rows[0]) > 0:
-        #     for column_index, attacking_card in enumerate(self.board.p2_rows[0]):
-        #         if defence_found:
-        #             break
-        #         for card_index, card_in_hand in enumerate(self.board.p2_hand):
-        #             if card_in_hand >= attacking_card:
-        #                 action_used = ["defend", card_index, 0, column_index]
-        #                 defence_found = True
-        #                 break
-        # elif len(self.board.p2_hand) > 2:  # If we have a card we can attack with
-        #     min_index = [0, self.board.p2_hand[0]]
-        #     for hand_index, card in enumerate(self.board.p2_hand):
-        #         if card < min_index[1]:
-        #             min_index = [hand_index, card]
-        #     action_used = ["attack", min_index[0]]
-        # else:  # ... otherwise pass
-        #     action_used = ["pass"]
+        defence_found = False
+        if len(self.board.p2_rows[0]) > 0:
+            for column_index, attacking_card in enumerate(self.board.p2_rows[0]):
+                if defence_found:
+                    break
+                for card_index, card_in_hand in enumerate(self.board.p2_hand):
+                    if card_in_hand >= attacking_card:
+                        action_used = ["defend", card_index, 0, column_index]
+                        defence_found = True
+                        break
+        elif len(self.board.p2_hand) > 4:  # If we have a card we can attack with
+            min_index = [0, self.board.p2_hand[0]]
+            for hand_index, card in enumerate(self.board.p2_hand):
+                if card < min_index[1]:
+                    min_index = [hand_index, card]
+            action_used = ["attack", min_index[0]]
+        else:  # ... otherwise pass
+            action_used = ["pass"]
 
-        print("Person Action:" + str(action_used))
+        print("Env Action:" + str(action_used))
         game_view(self.board)
 
         self.post_action_logic(action_used)
@@ -258,17 +256,20 @@ class KerduGamePVN(py_environment.PyEnvironment):
             return ts.transition(self._state, reward=reward, discount=1.0)
         else:
             if len(self.board.p1_rows[0]) != 0 and len(self.board.p2_rows[0]) != 0:
+                print("DRAW")
                 reward = 10
             elif len(self.board.p2_rows[0]) != 0:
+                print("WIN")
                 reward = 100
             else:  # Else loss and there's a card in p1_rows
+                print("LOSS")
                 reward = -100
 
             return ts.termination(self._state, reward=reward)
 
 
 if __name__ == "__main__":
-    saved_policy = tf.saved_model.load('../SavedModels/policy')
+    saved_policy = tf.saved_model.load('../SavedModels/policy800')
 
     eval_py_env = wrappers.TimeLimit(KerduGamePVN(), duration=1000)
     eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
