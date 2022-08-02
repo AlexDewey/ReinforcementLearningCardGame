@@ -1,6 +1,6 @@
 import os
 
-from C51.TFEnvironment import KerduGameEnv
+from Environments.BasicTFEnvironment import KerduGameEnv
 
 import matplotlib.pyplot as plt
 
@@ -9,7 +9,7 @@ import tensorflow as tf
 from tf_agents.agents.categorical_dqn import categorical_dqn_agent
 from tf_agents.environments import tf_py_environment
 from tf_agents.networks import categorical_q_network
-from tf_agents.policies import random_tf_policy, policy_saver, epsilon_greedy_policy
+from tf_agents.policies import random_tf_policy, policy_saver
 from tf_agents.replay_buffers import tf_uniform_replay_buffer
 from tf_agents.trajectories import trajectory
 from tf_agents.utils import common
@@ -89,6 +89,7 @@ def train():
     agent = categorical_dqn_agent.CategoricalDqnAgent(
         train_env.time_step_spec(),
         train_env.action_spec(),
+        epsilon_greedy=0.1,
         categorical_q_network=categorical_q_net,
         optimizer=optimizer,
         min_q_value=min_q_value,
@@ -141,10 +142,6 @@ def train():
     avg_return = compute_avg_return(eval_env, agent.policy, num_eval_episodes)
     returns = [avg_return]
 
-    # # Establishing random policy
-    epsilon_greedy_p = epsilon_greedy_policy.EpsilonGreedyPolicy(train_env.time_step_spec(),
-                                                    train_env.action_spec())
-
     # Actual training begins
     for _ in range(num_iterations):
 
@@ -166,10 +163,10 @@ def train():
             print('step = {0}: Average Return = {1:.2f}'.format(step, avg_return))
             returns.append(avg_return)
 
-    # policy_dir = os.path.join('../SavedModels', 'policy')
-    # tf_policy_saver = policy_saver.PolicySaver(agent.policy)
-    # tf_policy_saver.save(policy_dir)
-    #
+    policy_dir = os.path.join('../SavedModels', 'policy')
+    tf_policy_saver = policy_saver.PolicySaver(agent.policy)
+    tf_policy_saver.save(policy_dir)
+
     steps = range(0, num_iterations + 1, eval_interval)
     plt.plot(steps, returns)
     plt.ylabel('Average Return')

@@ -5,7 +5,7 @@ import numpy as np
 from tf_agents.environments import py_environment
 from tf_agents.specs import array_spec
 from tf_agents.trajectories import time_step as ts
-from BaseEnv.board import Board
+from Environments.BaseEnv.board import Board
 
 
 def game_view(board):
@@ -203,7 +203,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
                 action_used = ["attack", 0]
 
         # print("NN Action used: " + str(action_used))
-        # self.game_view(self.board)
+        # game_view(self.board)
 
         # Changing board based on action
         self.post_action_logic(action_used)
@@ -222,11 +222,11 @@ class KerduGameEnv(py_environment.PyEnvironment):
                 if defence_found:
                     break
                 for card_index, card_in_hand in enumerate(self.board.p2_hand):
-                    if card_in_hand > attacking_card:
+                    if card_in_hand >= attacking_card:
                         action_used = ["defend", card_index, 0, column_index]
                         defence_found = True
                         break
-        elif len(self.board.p2_hand) > 2:  # If we have a card we can attack with
+        elif len(self.board.p2_hand) > 2:  # 1 - 4 depending on aggression level
             min_index = [0, self.board.p2_hand[0]]
             for hand_index, card in enumerate(self.board.p2_hand):
                 if card < min_index[1]:
@@ -236,7 +236,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
             action_used = ["pass"]
 
         # print("Computer Action:" + str(action_used))
-        # self.game_view(self.board)
+        # game_view(self.board)
 
         self.post_action_logic(action_used)
 

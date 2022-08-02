@@ -1,4 +1,4 @@
-from BaseEnv.deck import *
+from Environments.BaseEnv.deck import *
 
 
 class Board:
