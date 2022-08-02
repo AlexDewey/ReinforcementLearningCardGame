@@ -221,27 +221,17 @@ class KerduGamePVN(py_environment.PyEnvironment):
         else:
             action_used = ["attack", 0]
 
-        # todo: Get action_used from user
-
-        # If immediate threat, defeat
-        # defence_found = False
-        # if len(self.board.p2_rows[0]) > 0:
-        #     for column_index, attacking_card in enumerate(self.board.p2_rows[0]):
-        #         if defence_found:
-        #             break
-        #         for card_index, card_in_hand in enumerate(self.board.p2_hand):
-        #             if card_in_hand >= attacking_card:
-        #                 action_used = ["defend", card_index, 0, column_index]
-        #                 defence_found = True
-        #                 break
-        # elif len(self.board.p2_hand) > 2:  # If we have a card we can attack with
-        #     min_index = [0, self.board.p2_hand[0]]
-        #     for hand_index, card in enumerate(self.board.p2_hand):
-        #         if card < min_index[1]:
-        #             min_index = [hand_index, card]
-        #     action_used = ["attack", min_index[0]]
-        # else:  # ... otherwise pass
-        #     action_used = ["pass"]
+        action_base = input("Attack(a) / Defend(d) / Pass(p)")
+        if action_base == 'p':
+            action_used = ["pass"]
+        elif action_base == 'a':
+            action_num = input("Use which card? (1-5)")
+            action_used = ["attack", int(action_num) - 1]
+        elif action_base == 'd':
+            action_hand = input("Use which card? (1-5)")
+            action_row = input("Which row? (1-4)")
+            action_column = input("Which column? (1-5)")
+            action_used = ["defend", int(action_hand), int(action_row), int(action_column)]
 
         print("Person Action:" + str(action_used))
         game_view(self.board)
