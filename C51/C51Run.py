@@ -9,7 +9,7 @@ import tensorflow as tf
 from tf_agents.agents.categorical_dqn import categorical_dqn_agent
 from tf_agents.environments import tf_py_environment
 from tf_agents.networks import categorical_q_network
-from tf_agents.policies import random_tf_policy, policy_saver
+from tf_agents.policies import random_tf_policy, policy_saver, epsilon_greedy_policy
 from tf_agents.replay_buffers import tf_uniform_replay_buffer
 from tf_agents.trajectories import trajectory
 from tf_agents.utils import common
@@ -18,7 +18,7 @@ from tf_agents.environments import wrappers
 
 
 # Finding the average return over 100 episodes
-def compute_avg_return(environment, policy, num_episodes=100):
+def compute_avg_return(environment, policy, num_episodes=300):
     total_return = 0.0
     for _ in range(num_episodes):
 
@@ -37,7 +37,7 @@ def compute_avg_return(environment, policy, num_episodes=100):
 
 def train():
     # Number of iterations during training, 5000000 was used with the original paper to show results
-    num_iterations = 50000
+    num_iterations = 100000
 
     # Initial collection for batch
     initial_collect_steps = 1000
@@ -45,11 +45,12 @@ def train():
     # How many elements can be stored in the replay buffer
     replay_buffer_capacity = 100000
 
+
     fc_layer_params = (800,)
 
     # C51 Learning hyperparameters
     batch_size = 64
-    learning_rate = 1e-3
+    learning_rate = 0.01
     gamma = 0.99
     log_interval = 200
 
@@ -58,7 +59,7 @@ def train():
     # Values should be set to the min and max step rewards
     min_q_value = -100
     max_q_value = 100
-    # Computing error between current time step and next time step using 2 steps
+    # Computing error between current time step and next time step using 4 steps
     n_step_update = 4
 
     num_eval_episodes = 10
@@ -140,6 +141,10 @@ def train():
     avg_return = compute_avg_return(eval_env, agent.policy, num_eval_episodes)
     returns = [avg_return]
 
+    # # Establishing random policy
+    epsilon_greedy_p = epsilon_greedy_policy.EpsilonGreedyPolicy(train_env.time_step_spec(),
+                                                    train_env.action_spec())
+
     # Actual training begins
     for _ in range(num_iterations):
 
@@ -153,21 +158,18 @@ def train():
 
         step = agent.train_step_counter.numpy()
 
-        if step % log_interval == 0:
-            print('step = {0}: loss = {1}'.format(step, train_loss.loss))
+        # if step % log_interval == 0:
+        #     print('step = {0}: loss = {1}'.format(step, train_loss.loss))
 
         if step % eval_interval == 0:
             avg_return = compute_avg_return(eval_env, agent.policy, num_eval_episodes)
             print('step = {0}: Average Return = {1:.2f}'.format(step, avg_return))
             returns.append(avg_return)
 
-    policy_dir = os.path.join('../SavedModels', 'policy')
-    tf_policy_saver = policy_saver.PolicySaver(agent.policy)
-    tf_policy_saver.save(policy_dir)
-
-
-
-
+    # policy_dir = os.path.join('../SavedModels', 'policy')
+    # tf_policy_saver = policy_saver.PolicySaver(agent.policy)
+    # tf_policy_saver.save(policy_dir)
+    #
     steps = range(0, num_iterations + 1, eval_interval)
     plt.plot(steps, returns)
     plt.ylabel('Average Return')
