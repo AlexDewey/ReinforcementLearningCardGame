@@ -226,7 +226,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
                         action_used = ["defend", card_index, 0, column_index]
                         defence_found = True
                         break
-        elif len(self.board.p2_hand) > 2:  # 1 - 4 depending on aggression level
+        elif len(self.board.p2_hand) > 4:  # 1 - 4 depending on aggression level
             min_index = [0, self.board.p2_hand[0]]
             for hand_index, card in enumerate(self.board.p2_hand):
                 if card < min_index[1]:
@@ -253,7 +253,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
                 reward = 10
             elif len(self.board.p2_rows[0]) != 0:
                 reward = 100
-            else:  # Else loss and there's a card in p1_rows
+            else:
                 reward = -100
 
             return ts.termination(self._state, reward=reward)
