@@ -63,9 +63,6 @@ class KerduGameEnv(py_environment.PyEnvironment):
         # How aggressive the bot is (4 mostly passive to 0 aggressive)
         self.bot_agency = bot_agency
 
-        # If games are being presented to screen, default false
-        self.view = False
-
     def action_spec(self):
         return self._action_spec
 
@@ -194,14 +191,6 @@ class KerduGameEnv(py_environment.PyEnvironment):
 
         return _state
 
-
-    def _view(self, view_bool):
-        if view_bool:
-            self.view = True
-        else:
-            self.view = False
-
-
     def _step(self, action):
 
         if self._episode_ended:
@@ -216,9 +205,8 @@ class KerduGameEnv(py_environment.PyEnvironment):
             else:
                 action_used = ["attack", 0]
 
-        if self.view:
-            print("NN Action used: " + str(action_used))
-            game_view(self.board)
+        # print("NN Action used: " + str(action_used))
+        # game_view(self.board)
 
         # Changing board based on action
         self.post_action_logic(action_used)
@@ -250,9 +238,8 @@ class KerduGameEnv(py_environment.PyEnvironment):
         else:  # ... otherwise pass
             action_used = ["pass"]
 
-        if self.view:
-            print("Computer Action:" + str(action_used))
-            game_view(self.board)
+        # print("Computer Action:" + str(action_used))
+        # game_view(self.board)
 
         self.post_action_logic(action_used)
 

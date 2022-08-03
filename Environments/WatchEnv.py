@@ -42,7 +42,7 @@ def game_view(board):
 
 class KerduGamePVN(py_environment.PyEnvironment):
 
-    def __init__(self):
+    def __init__(self, bot_agency):
         # pass (1), attack(5), defend(100) = 106
         super().__init__()
         self._action_spec = array_spec.BoundedArraySpec(
@@ -65,6 +65,9 @@ class KerduGamePVN(py_environment.PyEnvironment):
         self.playerPass = [True, True]
         self.card_in_play = False
         self.playerNum = 1
+
+        # How aggressive the bot is (4 mostly passive to 0 aggressive)
+        self.bot_agency = bot_agency
 
     def action_spec(self):
         return self._action_spec
@@ -232,7 +235,7 @@ class KerduGamePVN(py_environment.PyEnvironment):
                         action_used = ["defend", card_index, 0, column_index]
                         defence_found = True
                         break
-        elif len(self.board.p2_hand) > 4:  # If we have a card we can attack with
+        elif len(self.board.p2_hand) > self.bot_agency:
             min_index = [0, self.board.p2_hand[0]]
             for hand_index, card in enumerate(self.board.p2_hand):
                 if card < min_index[1]:
@@ -269,7 +272,6 @@ class KerduGamePVN(py_environment.PyEnvironment):
 
 
 if __name__ == "__main__":
-    saved_policy = tf.saved_model.load('../SavedModels/policy800')
 
     eval_py_env = wrappers.TimeLimit(KerduGamePVN(), duration=1000)
     eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)

@@ -1,9 +1,5 @@
 import os
-
-from Environments.BasicEnv import KerduGameEnv
-
 import matplotlib.pyplot as plt
-
 import tensorflow as tf
 
 from tf_agents.agents.categorical_dqn import categorical_dqn_agent
@@ -13,7 +9,6 @@ from tf_agents.policies import random_tf_policy, policy_saver
 from tf_agents.replay_buffers import tf_uniform_replay_buffer
 from tf_agents.trajectories import trajectory
 from tf_agents.utils import common
-
 from tf_agents.environments import wrappers
 
 
@@ -35,6 +30,21 @@ def compute_avg_return(environment, policy, num_episodes=300):
     return avg_return.numpy()[0]
 
 
+def watch(env, model_name, num_games):
+    env._view(True)
+    saved_policy = tf.saved_model.load('SavedModels/Policies/' + str(model_name))
+
+    eval_py_env = wrappers.TimeLimit(env, duration=1000)
+    eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
+
+    for _ in range(num_games):
+        time_step = eval_env.reset()
+        while not time_step.is_last():
+            action_step = saved_policy.action(time_step)
+            time_step = eval_env.step(action_step.action)
+    env._view(False)
+
+
 class C51:
 
     # train_time: (int) number of iterations
@@ -52,7 +62,6 @@ class C51:
         # How many elements can be stored in the replay buffer
         self.replay_buffer_capacity = 100000
 
-        #
         self.fc_layer_params = (fc_layer_params,)  # 242
 
         # C51 Learning hyperparameters
@@ -72,13 +81,14 @@ class C51:
         self.num_eval_episodes = 10
         self.eval_interval = 1000
 
-        # For training
+        # Empty variables until assigned
         self.avg_returns = list()
-
+        self.model_name = ""
 
     # env: (PyEnvironment) Environment the model will be training on
-    # checkpoint_name: (str) name that the checkpoint is saved under
-    def train(self, env, checkpoint_name):
+    # model_name: (str) name that the checkpoint is saved under
+    def train(self, env, model_name):
+        self.model_name = str(model_name)
 
         # Environment setup
         train_py_env = wrappers.TimeLimit(env, duration=100)  # KerduGameEnv()
@@ -86,7 +96,6 @@ class C51:
 
         train_env = tf_py_environment.TFPyEnvironment(train_py_env)
         eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
-
 
         # C51 setup
         categorical_q_net = categorical_q_network.CategoricalQNetwork(
@@ -96,7 +105,7 @@ class C51:
             fc_layer_params=self.fc_layer_params)
 
         optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=self.learning_rate)
-        train_step_counter =  tf.compat.v1.train.get_or_create_global_step() # tf.Variable(0)
+        train_step_counter = tf.compat.v1.train.get_or_create_global_step()  # tf.Variable(0)
         agent = categorical_dqn_agent.CategoricalDqnAgent(
             train_env.time_step_spec(),
             train_env.action_spec(),
@@ -111,7 +120,6 @@ class C51:
             train_step_counter=train_step_counter)
 
         agent.initialize()
-
 
         # Creating replay buffer and filling before training. Other setup as well
         random_policy = random_tf_policy.RandomTFPolicy(train_env.time_step_spec(),
@@ -142,9 +150,8 @@ class C51:
         avg_return = compute_avg_return(eval_env, agent.policy, self.num_eval_episodes)
         self.returns = [avg_return]
 
-
         # Checkpointer
-        checkpoint_dir = os.path.join('SavedModels/Checkpoints', str(checkpoint_name))
+        checkpoint_dir = os.path.join('SavedModels/Checkpoints', str(model_name))
         train_checkpointer = common.Checkpointer(
             ckpt_dir=checkpoint_dir,
             max_to_keep=1,
@@ -153,7 +160,6 @@ class C51:
             replay_buffer=replay_buffer,
             global_step=train_step_counter
         )
-
 
         # Training starts
         for _ in range(self.num_iterations):
@@ -176,10 +182,15 @@ class C51:
                 print('step = {0}: Average Return = {1:.2f}'.format(step, avg_return))
                 self.returns.append(avg_return)
 
-
-        # Save
+        # Save Checkpoint for training and policy for deployment
         train_checkpointer.save(train_step_counter)
+        policy_dir = os.path.join('SavedModels/Policies', str(model_name))
+        tf_policy_saver = policy_saver.PolicySaver(agent.policy)
+        tf_policy_saver.save(policy_dir)
 
+    # env: (PyEnvironment) Environment the model will be training on
+    # model_name: (str) name that the checkpoint is saved under
+    # num_games: (int) number of games you want to watch
 
     def viewPlot(self):
         steps = range(0, self.num_iterations + 1, self.eval_interval)
