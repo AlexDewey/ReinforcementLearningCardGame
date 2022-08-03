@@ -36,7 +36,7 @@ def game_view(board):
 
 class KerduGameEnv(py_environment.PyEnvironment):
 
-    def __init__(self):
+    def __init__(self, bot_agency):
         # pass (1), attack(5), defend(100) = 106
         super().__init__()
         self._action_spec = array_spec.BoundedArraySpec(
@@ -55,10 +55,13 @@ class KerduGameEnv(py_environment.PyEnvironment):
         self.board.fill_hand(2)
         self._state = self.transcribe_state()
 
-        self.players = ["NN", "ENV"]
+        self.players = ["P1", "P2"]
         self.playerPass = [True, True]
         self.card_in_play = False
         self.playerNum = 1
+
+        # How aggressive the bot is (4 mostly passive to 0 aggressive)
+        self.bot_agency = bot_agency
 
     def action_spec(self):
         return self._action_spec

@@ -37,8 +37,9 @@
 
 # Environment difficulty 1 (aggressive / hard) - 4 (easy)
 # WatchEnv = WatchEnv(4)
+from Agents.C51Run import C51
+from Environments.BasicEnv import KerduGameEnv
 
-
-
-
-
+easy_game_env = KerduGameEnv(4)
+small_net = C51(100000, 242, -100, 100, 4)
+small_net.train(easy_game_env, "NewToWise")

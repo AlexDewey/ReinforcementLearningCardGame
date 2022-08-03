@@ -61,7 +61,7 @@ class KerduGamePVN(py_environment.PyEnvironment):
         self.board.fill_hand(2)
         self._state = self.transcribe_state()
 
-        self.players = ["NN", "P1"]
+        self.players = ["P1", "P2"]
         self.playerPass = [True, True]
         self.card_in_play = False
         self.playerNum = 1
@@ -255,17 +255,3 @@ class KerduGamePVN(py_environment.PyEnvironment):
                 reward = -100
 
             return ts.termination(self._state, reward=reward)
-
-
-if __name__ == "__main__":
-    saved_policy = tf.saved_model.load('../SavedModels/policy800')
-
-    eval_py_env = wrappers.TimeLimit(KerduGamePVN(), duration=1000)
-    eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
-
-    num_games = 10
-    for _ in range(num_games):
-        time_step = eval_env.reset()
-        while not time_step.is_last():
-            action_step = saved_policy.action(time_step)
-            time_step = eval_env.step(action_step.action)

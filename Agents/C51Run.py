@@ -35,7 +35,7 @@ def compute_avg_return(environment, policy, num_episodes=300):
     return avg_return.numpy()[0]
 
 
-class C51():
+class C51:
 
     # train_time: (int) number of iterations
     # fc_layer_params: (int) size of fully connected layer
@@ -72,11 +72,17 @@ class C51():
         self.num_eval_episodes = 10
         self.eval_interval = 1000
 
-    def train(self, env):
+        # For training
+        self.avg_returns = list()
+
+
+    # env: (PyEnvironment) Environment the model will be training on
+    # checkpoint_name: (str) name that the checkpoint is saved under
+    def train(self, env, checkpoint_name):
 
         # Environment setup
-        train_py_env = wrappers.TimeLimit(env(), duration=100)  # KerduGameEnv()
-        eval_py_env = wrappers.TimeLimit(env(), duration=100)  # KerduGameEnv()
+        train_py_env = wrappers.TimeLimit(env, duration=100)  # KerduGameEnv()
+        eval_py_env = wrappers.TimeLimit(env, duration=100)  # KerduGameEnv()
 
         train_env = tf_py_environment.TFPyEnvironment(train_py_env)
         eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
@@ -90,7 +96,7 @@ class C51():
             fc_layer_params=self.fc_layer_params)
 
         optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=self.learning_rate)
-        train_step_counter = tf.Variable(0)
+        train_step_counter =  tf.compat.v1.train.get_or_create_global_step() # tf.Variable(0)
         agent = categorical_dqn_agent.CategoricalDqnAgent(
             train_env.time_step_spec(),
             train_env.action_spec(),
@@ -107,7 +113,7 @@ class C51():
         agent.initialize()
 
 
-        # Creating replay buffer and filling before training
+        # Creating replay buffer and filling before training. Other setup as well
         random_policy = random_tf_policy.RandomTFPolicy(train_env.time_step_spec(),
                                                         train_env.action_spec())
 
@@ -134,7 +140,19 @@ class C51():
         agent.train = common.function(agent.train)
         agent.train_step_counter.assign(0)
         avg_return = compute_avg_return(eval_env, agent.policy, self.num_eval_episodes)
-        returns = [avg_return]
+        self.returns = [avg_return]
+
+
+        # Checkpointer
+        checkpoint_dir = os.path.join('SavedModels/Checkpoints', str(checkpoint_name))
+        train_checkpointer = common.Checkpointer(
+            ckpt_dir=checkpoint_dir,
+            max_to_keep=1,
+            agent=agent,
+            policy=agent.policy,
+            replay_buffer=replay_buffer,
+            global_step=train_step_counter
+        )
 
 
         # Training starts
@@ -156,16 +174,16 @@ class C51():
             if step % self.eval_interval == 0:
                 avg_return = compute_avg_return(eval_env, agent.policy, self.num_eval_episodes)
                 print('step = {0}: Average Return = {1:.2f}'.format(step, avg_return))
-                returns.append(avg_return)
+                self.returns.append(avg_return)
 
-        # policy_dir = os.path.join('../SavedModels', 'policy242')
-        # tf_policy_saver = policy_saver.PolicySaver(agent.policy)
-        # tf_policy_saver.save(policy_dir)
 
-        # checkpoint_dir = os.path.join('../SavedModels', 'checkpoint')
+        # Save
+        train_checkpointer.save(train_step_counter)
 
+
+    def viewPlot(self):
         steps = range(0, self.num_iterations + 1, self.eval_interval)
-        plt.plot(steps, returns)
+        plt.plot(steps, self.returns)
         plt.ylabel('Average Return')
         plt.xlabel('Step')
         plt.ylim(top=110)
