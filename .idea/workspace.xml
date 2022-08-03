@@ -3,8 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="4f21ec5e-c4dc-4b0b-835a-9c25e1d9f386" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Environments/BasicEnv.py" beforeDir="false" afterPath="$PROJECT_DIR$/Environments/BasicEnv.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/heuristicTesting.py" beforeDir="false" afterPath="$PROJECT_DIR$/heuristicTesting.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Agent_Creators/C51Run.py" beforeDir="false" afterPath="$PROJECT_DIR$/Agent_Creators/C51Run.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -28,7 +27,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/Agent_Creators/C51Run.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/Environments/WatchEnv.py" />
     <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
@@ -54,7 +53,7 @@
     </option>
   </component>
   <component name="RunManager">
-    <configuration name="C51Run" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+    <configuration name="WatchEnv" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="CardRL" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -62,7 +61,7 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="C:\Users\Dewey\AppData\Local\Programs\Python\Python38\python.exe" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Agent_Creators" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Environments" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
@@ -76,7 +75,7 @@
           <ENTRY IS_ENABLED="true" PARSER="runconfig" />
         </ENTRIES>
       </EXTENSION>
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Agent_Creators/C51Run.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Environments/WatchEnv.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -129,6 +128,11 @@
           <url>file://$USER_HOME$/AppData/Local/Programs/Python/Python38/Lib/site-packages/numpy/core/fromnumeric.py</url>
           <line>2153</line>
           <option name="timeStamp" value="16" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Environments/WatchEnv.py</url>
+          <line>273</line>
+          <option name="timeStamp" value="31" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
