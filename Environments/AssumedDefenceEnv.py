@@ -37,10 +37,11 @@ def game_view(board):
 class KerduGameEnv(py_environment.PyEnvironment):
 
     def __init__(self, bot_agency):
-        # pass (1), attack(5), defend(100) = 106
+        # pass (1), attack(5), defend(100) = 106 -> 105
+        # pass (1), attack(5), defend(20) = 26 -> 25
         super().__init__()
         self._action_spec = array_spec.BoundedArraySpec(
-            shape=(), dtype=np.int32, minimum=0, maximum=105, name='action')
+            shape=(), dtype=np.int32, minimum=0, maximum=25, name='action')
         # boards (2), hand(65), opponent_num_cards(5) = 590
         self._observation_spec = array_spec.BoundedArraySpec(
             shape=(590,), dtype=np.int32, minimum=0, maximum=1, name='observation')
@@ -142,27 +143,28 @@ class KerduGameEnv(py_environment.PyEnvironment):
 
     def interpret_action(self, action):
         action_used = ["pass"]
-        if 0 <= action <= 99:
-            # defend
-            hand = math.ceil((action + 1) / 20)
-            board_pos = (hand * 20 - action)
-            row = math.ceil(board_pos / 5) - 1
-            column = abs(row * 5 - board_pos) - 1
+        if 0 <= action <= 19:
+            defend_idx = math.floor((action + 4) / 4) - 1
+            row = abs(defend_idx * 4 - action)
 
-            if column > len(self.board.p1_rows[row]):
+            if len(self.board.p1_rows[row]) == 0:
                 return None
-            elif (hand - 1) < len(self.board.p1_hand):
-                if column < len(self.board.p1_rows[row]):
-                    if self.board.p1_hand[hand - 1] <= self.board.p1_rows[row][column]:
-                        return None
-                    else:
-                        action_used = ["defend", hand - 1, row, column]
-        elif 100 <= action <= 104:
-            if action - 100 < len(self.board.p1_hand) and len(self.board.p1_hand) > 0:
+            elif defend_idx < len(self.board.p1_hand):
+                # Finds best fit defence for the row and defending card selected
+                # card value, idx
+                best_fit = [-1, -1]
+                defending_card = self.board.p1_hand[defend_idx]
+                for index, card in enumerate(self.board.p1_rows[row]):
+                    if defending_card >= card > best_fit[0]:
+                        best_fit = [card, index]
+                if best_fit[0] == -1:
+                    return None
+                else:
+                    action_used = ["defend", defend_idx, row, best_fit[1]]
+        elif 20 <= action <= 24:
+            if action - 20 < len(self.board.p1_hand) and len(self.board.p1_hand) > 0:
                 action_used = ["attack", action - 100]
-            else:
-                return None
-        elif action == 105:
+        else:
             if not self.card_in_play and len(self.board.p1_hand) > 0:
                 action_used = ["attack", 0]
             else:
