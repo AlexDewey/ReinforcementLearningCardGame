@@ -201,7 +201,6 @@ class KerduGameEnv(py_environment.PyEnvironment):
         else:
             self.view = False
 
-
     def _step(self, action):
 
         if self._episode_ended:

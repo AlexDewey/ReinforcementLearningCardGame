@@ -29,7 +29,9 @@ def compute_avg_return(environment, policy, num_episodes=300):
     avg_return = total_return / num_episodes
     return avg_return.numpy()[0]
 
-
+# env: (PyEnvironment) Environment the model will be training on
+    # model_name: (str) name that the checkpoint is saved under
+    # num_games: (int) number of games you want to watch
 def watch(env, model_name, num_games):
     env._view(True)
     saved_policy = tf.saved_model.load('SavedModels/Policies/' + str(model_name))
@@ -187,10 +189,6 @@ class C51:
         policy_dir = os.path.join('SavedModels/Policies', str(model_name))
         tf_policy_saver = policy_saver.PolicySaver(agent.policy)
         tf_policy_saver.save(policy_dir)
-
-    # env: (PyEnvironment) Environment the model will be training on
-    # model_name: (str) name that the checkpoint is saved under
-    # num_games: (int) number of games you want to watch
 
     def viewPlot(self):
         steps = range(0, self.num_iterations + 1, self.eval_interval)
