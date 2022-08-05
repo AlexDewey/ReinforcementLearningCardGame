@@ -38,9 +38,16 @@
 # Environment difficulty 1 (aggressive / hard) - 4 (easy)
 # WatchEnv = WatchEnv(4)
 from Agents.C51Run import C51, watch
-from Environments.BasicEnv import KerduGameEnv
+from Environments.BasicEnv import KerduGameEnv as NormalEnv
+from Environments.AssumedDefenceEnv import KerduGameEnv as AssistedEnv
+from Environments.PVAEnv import KerduGamePVN as PlayerVsAgent
 
-easy_game_env = KerduGameEnv(3)
-# small_net = C51(2000, 242, -100, 100, 4)
-# small_net.train(easy_game_env, "NewToWise")
-watch(easy_game_env, "NewToWise", 1)
+game_env = AssistedEnv(3)
+print("12 ========================================================")
+twelve_net = C51(100000, 12, -100, 100, 4)
+twelve_net.train(game_env, "Helped12")
+twelve_net.viewPlot()
+print("26 ========================================================")
+twosix_net = C51(100000, 26, -100, 100, 4)
+twosix_net.train(game_env, "Helped26")
+twosix_net.viewPlot()

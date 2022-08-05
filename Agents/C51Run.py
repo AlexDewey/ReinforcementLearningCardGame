@@ -195,6 +195,6 @@ class C51:
         plt.plot(steps, self.returns)
         plt.ylabel('Average Return')
         plt.xlabel('Step')
-        plt.ylim(top=110)
+        plt.ylim(top=130)
 
         plt.show()
