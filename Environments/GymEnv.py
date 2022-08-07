@@ -59,8 +59,8 @@ class KerduGym(py_environment.PyEnvironment):
         self.playerNum = 1
 
         self.correct_actions = list()
-        exercise = random.randrange(0, 4)
-        if exercise == 0:
+        self.exercise = random.randrange(0, 4)
+        if self.exercise == 0:
             # Optimal first row defence
             while len(self.board.p1_rows[0]) == 0:
                 for num_possible_cards in range(5):
@@ -84,7 +84,7 @@ class KerduGym(py_environment.PyEnvironment):
             # Add card action to correct actions "defend, card_used_idx, row, column"
             for index, card in enumerate(self.board.p1_rows[0]):
                 self.correct_actions.append(["defend", self.board.p1_hand.index(card), 0, index])
-        elif exercise == 1:
+        elif self.exercise == 1:
             # todo
             # Perfect Defence
             # While the board is empty
@@ -106,7 +106,7 @@ class KerduGym(py_environment.PyEnvironment):
                 for index, card in enumerate(row):
                     # "defend, card_used_idx, row, column"
                     self.correct_actions.append(["defend", self.board.p1_rows.index(card), row, index])
-        elif exercise == 2:
+        elif self.exercise == 2:
             # Pass
             while len(self.board.p2_rows[0]) == 0:
                 for num_possible_card in range(5):
@@ -116,7 +116,7 @@ class KerduGym(py_environment.PyEnvironment):
                         self.board.p2_rows[0].append(card_value)
 
             self.correct_actions = ["pass"]
-        else:
+        elif self.exercise == 3:
             # todo
             # Assassinate
 
@@ -250,7 +250,18 @@ class KerduGym(py_environment.PyEnvironment):
         if self._episode_ended:
             return self.reset()
 
-        # todo: adjust correct actions if needed
+        if self.exercise == 0:
+            for index, card in enumerate(self.board.p1_rows[0]):
+                self.correct_actions.append(["defend", self.board.p1_hand.index(card), 0, index])
+        if self.exercise == 1:
+            for row in self.board.p1_rows:
+                for index, card in enumerate(row):
+                    self.correct_actions.append(["defend", self.board.p1_rows.index(card), row, index])
+        elif self.exercise == 2:
+            self.correct_actions = ["pass"]
+        elif self.exercise == 3:
+            for index in range(len(self.board.p1_hand)):
+                self.correct_actions.append(["attack", index])
 
         action_used = self.interpret_action(action)
 
