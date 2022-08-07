@@ -58,18 +58,45 @@ class KerduGym(py_environment.PyEnvironment):
         self.card_in_play = False
         self.playerNum = 1
 
-        # todo: Set custom board
+        self.correct_actions = list()
         exercise = random.randrange(0, 4)
         if exercise == 0:
             # Optimal first row defence
-            num_of_defences = random.randrange(0, 5)
+            while len(self.board.p1_rows[0]) == 0:
+                for group in range(0, 5):
+                    # Create Board
+                    if random.randrange(0, 2) == 1:
+                        if group == 0:
+                            card_value = random.randrange(0, 2)
+                        elif group == 1:
+                            card_value = random.randrange(2, 5)
+                        elif group == 2:
+                            card_value = random.randrange(5, 8)
+                        elif group == 3:
+                            card_value = random.randrange(8, 11)
+                        else:
+                            card_value = random.randrange(11, 13)
+                        self.board.p1_rows[0].append(card_value)
+
+            random.shuffle(self.board.p1_rows[0])
+
+            # Create optimal hand
+            for card in self.board.p1_rows[0]:
+                self.board.p1_hand.append(card)
+
+            # Add card action to correct actions "defend, card_used_idx, row, column"
+            for index, card in enumerate(self.board.p1_rows[0]):
+                self.correct_actions.append(["defend", self.board.p1_hand.index(card), 0, index])
         elif exercise == 1:
+            # todo
             # Perfect Defence
             num_of_defences = random.randrange(0, 5)
-        elif exercise == 2:
-            # Pass
 
+        elif exercise == 2:
+            # todo
+            # Pass
         else:
+            # todo
             # Assassinate
             num_of_combo = random.randrange(0, 5)
 
@@ -163,6 +190,7 @@ class KerduGym(py_environment.PyEnvironment):
             self.view = False
 
     def _step(self, action):
+        # todo
 
         if self._episode_ended:
             return self.reset()
@@ -180,73 +208,3 @@ class KerduGym(py_environment.PyEnvironment):
                 return ts.termination(self._state, reward=reward)
             else:
                 return ts.transition(self._state, reward=reward, discount=1.0)
-
-        # if self._episode_ended:
-        #     return self.reset()
-        #
-        # # Completing action
-        # action_used = self.interpret_action(action)
-        #
-        # if action_used is None:
-        #     if self.card_in_play:
-        #         action_used = ["pass"]
-        #     else:
-        #         action_used = ["attack", 0]
-        #
-        # if self.view:
-        #     print("NN Action used: " + str(action_used))
-        #     game_view(self.board)
-        #
-        # # Changing board based on action
-        # self.post_action_logic(action_used)
-        #
-        # self.pre_action_logic()
-        #
-        # if self.card_in_play:
-        #     action_used = ["pass"]
-        # else:
-        #     action_used = ["attack", 0]
-        #
-        # # If immediate threat, defeat
-        # defence_found = False
-        # if len(self.board.p2_rows[0]) > 0:
-        #     for column_index, attacking_card in enumerate(self.board.p2_rows[0]):
-        #         if defence_found:
-        #             break
-        #         for card_index, card_in_hand in enumerate(self.board.p2_hand):
-        #             if card_in_hand >= attacking_card:
-        #                 action_used = ["defend", card_index, 0, column_index]
-        #                 defence_found = True
-        #                 break
-        # elif len(self.board.p2_hand) > self.bot_agency:
-        #     min_index = [0, self.board.p2_hand[0]]
-        #     for hand_index, card in enumerate(self.board.p2_hand):
-        #         if card < min_index[1]:
-        #             min_index = [hand_index, card]
-        #     action_used = ["attack", min_index[0]]
-        # else:  # ... otherwise pass
-        #     action_used = ["pass"]
-        #
-        # if self.view:
-        #     print("Computer Action:" + str(action_used))
-        #     game_view(self.board)
-        #
-        # self.post_action_logic(action_used)
-        #
-        # self.pre_action_logic()
-        #
-        # self._state = self.transcribe_state()
-        #
-        # if self._episode_ended is False:
-        #     reward = 1
-        #
-        #     return ts.transition(self._state, reward=reward, discount=1.0)
-        # else:
-        #     if len(self.board.p1_rows[0]) != 0 and len(self.board.p2_rows[0]) != 0:
-        #         reward = 10
-        #     elif len(self.board.p2_rows[0]) != 0:
-        #         reward = 100
-        #     else:
-        #         reward = -100
-        #
-        #     return ts.termination(self._state, reward=reward)
