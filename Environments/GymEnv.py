@@ -63,26 +63,23 @@ class KerduGym(py_environment.PyEnvironment):
         if exercise == 0:
             # Optimal first row defence
             while len(self.board.p1_rows[0]) == 0:
-                for group in range(0, 5):
+                for num_possible_cards in range(5):
                     # Create Board
                     if random.randrange(0, 2) == 1:
-                        if group == 0:
-                            card_value = random.randrange(0, 2)
-                        elif group == 1:
-                            card_value = random.randrange(2, 5)
-                        elif group == 2:
-                            card_value = random.randrange(5, 8)
-                        elif group == 3:
-                            card_value = random.randrange(8, 11)
-                        else:
-                            card_value = random.randrange(11, 13)
+                        card_value = random.randrange(0, 13)
                         self.board.p1_rows[0].append(card_value)
 
             random.shuffle(self.board.p1_rows[0])
 
-            # Create optimal hand
+            # Create hand that may be suboptimal for defence, but a clear answer is given
             for card in self.board.p1_rows[0]:
-                self.board.p1_hand.append(card)
+                max_value = card
+                while random.randrange(0, 4) != 0:
+                    if (max_value + 1) not in self.board.p1_rows[0]:
+                        max_value += 1
+                    else:
+                        break
+                self.board.p1_hand.append(max_value)
 
             # Add card action to correct actions "defend, card_used_idx, row, column"
             for index, card in enumerate(self.board.p1_rows[0]):
@@ -90,15 +87,74 @@ class KerduGym(py_environment.PyEnvironment):
         elif exercise == 1:
             # todo
             # Perfect Defence
-            num_of_defences = random.randrange(0, 5)
+            # While the board is empty
+            while len(self.board.p1_rows[0]) == 0 and len(self.board.p1_rows[1]) == 0 and len(self.board.p1_rows[2]) == 0 and len(self.board.p1_rows[3]) == 0:
+                for num_possible_cards in range(5):
+                    if random.randrange(0, 2) == 1:
+                        card_value = random.randrange(0, 13)
+                        if card_value <= 1:
+                            self.board.p1_rows[0].append(card_value)
+                        if 2 <= card_value <= 8:
+                            self.board.p1_rows[1].append(card_value)
+                        if 9 <= card_value <= 11:
+                            self.board.p1_rows[2].append(card_value)
+                        else:
+                            self.board.p1_rows[3].append(card_value)
+                        self.board.p1_hand.append(card_value)
 
+            for row in self.board.p1_rows:
+                for index, card in enumerate(row):
+                    # "defend, card_used_idx, row, column"
+                    self.correct_actions.append(["defend", self.board.p1_rows.index(card), row, index])
         elif exercise == 2:
-            # todo
             # Pass
+            while len(self.board.p2_rows[0]) == 0:
+                for num_possible_card in range(5):
+                    # Create Board
+                    if random.randrange(0, 2) == 1:
+                        card_value = random.randrange(0, 13)
+                        self.board.p2_rows[0].append(card_value)
+
+            self.correct_actions = ["pass"]
         else:
             # todo
             # Assassinate
-            num_of_combo = random.randrange(0, 5)
+
+            # Non-threatening self board
+            for no_threat_row in range(1, 4):
+                for _ in range(5):
+                    if random.randrange(0, 3) == 1:
+                        if no_threat_row == 1:
+                            self.board.p1_rows[1].append(random.randrange(2, 9))
+                        elif no_threat_row == 2:
+                            self.board.p1_rows[2].append(random.randrange(9, 11))
+                        else:
+                            self.board.p1_rows[3].append(12)
+            # Non-threatening enemy board
+            for no_threat_row in range(1, 4):
+                for _ in range(5):
+                    if random.randrange(0, 3) == 1:
+                        if no_threat_row == 1:
+                            self.board.p2_rows[1].append(random.randrange(2, 9))
+                        elif no_threat_row == 2:
+                            self.board.p2_rows[2].append(random.randrange(9, 11))
+                        else:
+                            self.board.p2_rows[3].append(12)
+
+            hand_size = random.randrange(1, 5)
+            enemy_hand_size = hand_size - 1
+
+            for _ in range(hand_size):
+                if random.randrange(0, 2) == 0:
+                    self.board.p1_hand.append(0)
+                else:
+                    self.board.p1_hand.append(1)
+
+            for _ in range(enemy_hand_size):
+                self.board.p2_hand.append(random.randrange(2, 11))
+
+            for index in range(len(self.board.p1_hand)):
+                self.correct_actions.append(["attack", index])
 
         self._state = self.transcribe_state()
         return ts.restart(self._state)
@@ -190,10 +246,11 @@ class KerduGym(py_environment.PyEnvironment):
             self.view = False
 
     def _step(self, action):
-        # todo
 
         if self._episode_ended:
             return self.reset()
+
+        # todo: adjust correct actions if needed
 
         action_used = self.interpret_action(action)
 
