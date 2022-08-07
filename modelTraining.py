@@ -41,13 +41,10 @@ from Agents.C51Run import C51, watch
 from Environments.BasicEnv import KerduGameEnv as NormalEnv
 from Environments.AssumedDefenceEnv import KerduGameEnv as AssistedEnv
 from Environments.PVAEnv import KerduGamePVN as PlayerVsAgent
+from Environments.GymEnv import KerduGym as Gym
 
-game_env = AssistedEnv(3)
+game_env = Gym()
 print("12 ========================================================")
 twelve_net = C51(100000, 12, -100, 100, 4)
 twelve_net.train(game_env, "Helped12")
 twelve_net.viewPlot()
-print("26 ========================================================")
-twosix_net = C51(100000, 26, -100, 100, 4)
-twosix_net.train(game_env, "Helped26")
-twosix_net.viewPlot()

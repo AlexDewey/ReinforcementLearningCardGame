@@ -15,7 +15,7 @@ def game_view(board):
 
 class KerduGym(py_environment.PyEnvironment):
 
-    def __init__(self, bot_agency):
+    def __init__(self):
         # pass (1), attack(5), defend(20) = 26 -> 25
         super().__init__()
         self._action_spec = array_spec.BoundedArraySpec(
@@ -38,9 +38,6 @@ class KerduGym(py_environment.PyEnvironment):
         self.playerPass = [True, True]
         self.card_in_play = False
         self.playerNum = 1
-
-        # How aggressive the bot is (4 mostly passive to 0 aggressive)
-        self.bot_agency = bot_agency
 
         # If games are being presented to screen, default false
         self.view = False
