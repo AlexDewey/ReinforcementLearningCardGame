@@ -85,7 +85,6 @@ class KerduGym(py_environment.PyEnvironment):
             for index, card in enumerate(self.board.p1_rows[0]):
                 self.correct_actions.append(["defend", self.board.p1_hand.index(card), 0, index])
         elif self.exercise == 1:
-            # todo
             # Perfect Defence
             # While the board is empty
             while len(self.board.p1_rows[0]) == 0 and len(self.board.p1_rows[1]) == 0 and len(self.board.p1_rows[2]) == 0 and len(self.board.p1_rows[3]) == 0:
@@ -117,7 +116,6 @@ class KerduGym(py_environment.PyEnvironment):
 
             self.correct_actions = ["pass"]
         elif self.exercise == 3:
-            # todo
             # Assassinate
 
             # Non-threatening self board
@@ -245,6 +243,37 @@ class KerduGym(py_environment.PyEnvironment):
         else:
             self.view = False
 
+    def enact_action(self, action_used):
+        if self.exercise == 0:
+            # Optimal First Defence
+            # self.correct_actions.append(["defend", self.board.p1_hand.index(card), 0, index])
+            del self.board.p1_hand[action_used[1]]
+            del self.board.p1_rows[0][action_used[3]]
+            if len(self.board.p1_hand) == 0:
+                return True
+            else:
+                return False
+        if self.exercise == 1:
+            # Perfect Defence
+            # "defend, card_used_idx, row, column"
+            del self.board.p1_hand[action_used[1]]
+            del self.board.p1_rows[action_used[2]][action_used[3]]
+            if len(self.board.p1_hand) == 0:
+                return True
+            else:
+                return False
+        if self.exercise == 2:
+            return True
+        if self.exercise == 3:
+            # assasination
+            # attack, card_idx
+            del self.board.p1_hand[0]
+            del self.board.p2_hand[0]
+            if len(self.board.p1_hand) == 0:
+                return True
+            else:
+                return False
+
     def _step(self, action):
 
         if self._episode_ended:
@@ -271,6 +300,8 @@ class KerduGym(py_environment.PyEnvironment):
         else:
             # Enact the action that's used onto the board and return if the gym training is complete
             exercise_complete = self.enact_action(action_used)
+            # Update state for new return
+            self._state = self.transcribe_state()
             reward = 100
             if exercise_complete:
                 return ts.termination(self._state, reward=reward)
