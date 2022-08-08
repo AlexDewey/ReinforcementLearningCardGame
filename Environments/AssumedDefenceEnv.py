@@ -165,7 +165,7 @@ class KerduGameEnv(py_environment.PyEnvironment):
                     action_used = ["defend", defend_idx, row, best_fit[1]]
         elif 20 <= action <= 24:
             if action - 20 < len(self.board.p1_hand) and len(self.board.p1_hand) > 0:
-                action_used = ["attack", action - 100]
+                action_used = ["attack", action - 20]
         else:
             if not self.card_in_play and len(self.board.p1_hand) > 0:
                 action_used = ["attack", 0]

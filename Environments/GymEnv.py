@@ -56,7 +56,10 @@ class KerduGym(py_environment.PyEnvironment):
         self.playerNum = 1
 
         self.correct_actions = list()
-        self.exercise = random.randrange(0, 4)
+        # self.exercise = random.randrange(0, 4)
+
+        self.exercise = 0
+
         if self.exercise == 0:
             # Optimal first row defence
             while len(self.board.p1_rows[0]) == 0:
@@ -73,14 +76,13 @@ class KerduGym(py_environment.PyEnvironment):
                 max_value = card
                 while random.randrange(0, 4) != 0:
                     if (max_value + 1) not in self.board.p1_rows[0]:
-                        max_value += 1
+                        if max_value == 12:
+                            continue
+                        else:
+                            max_value += 1
                     else:
-                        break
+                        continue
                 self.board.p1_hand.append(max_value)
-
-            # Add card action to correct actions "defend, card_used_idx, row, column"
-            for index, card in enumerate(self.board.p1_rows[0]):
-                self.correct_actions.append(["defend", self.board.p1_hand.index(card), 0, index])
         elif self.exercise == 1:
             # Perfect Defence
             # While the board is empty
@@ -90,18 +92,13 @@ class KerduGym(py_environment.PyEnvironment):
                         card_value = random.randrange(0, 13)
                         if card_value <= 1:
                             self.board.p1_rows[0].append(card_value)
-                        if 2 <= card_value <= 8:
+                        elif 2 <= card_value <= 8:
                             self.board.p1_rows[1].append(card_value)
-                        if 9 <= card_value <= 11:
+                        elif 9 <= card_value <= 11:
                             self.board.p1_rows[2].append(card_value)
-                        else:
+                        elif card_value == 12:
                             self.board.p1_rows[3].append(card_value)
                         self.board.p1_hand.append(card_value)
-
-            for row in self.board.p1_rows:
-                for index, card in enumerate(row):
-                    # "defend, card_used_idx, row, column"
-                    self.correct_actions.append(["defend", self.board.p1_rows.index(card), row, index])
         elif self.exercise == 2:
             # Pass
             while len(self.board.p2_rows[0]) == 0:
@@ -110,8 +107,6 @@ class KerduGym(py_environment.PyEnvironment):
                     if random.randrange(0, 2) == 1:
                         card_value = random.randrange(0, 13)
                         self.board.p2_rows[0].append(card_value)
-
-            self.correct_actions = ["pass"]
         elif self.exercise == 3:
             # Assassinate
 
@@ -147,9 +142,6 @@ class KerduGym(py_environment.PyEnvironment):
 
             for _ in range(enemy_hand_size):
                 self.board.p2_hand.append(random.randrange(2, 11))
-
-            for index in range(len(self.board.p1_hand)):
-                self.correct_actions.append(["attack", index])
 
         self._state = self.transcribe_state()
         return ts.restart(self._state)
@@ -204,7 +196,7 @@ class KerduGym(py_environment.PyEnvironment):
                     action_used = ["defend", defend_idx, row, best_fit[1]]
         elif 20 <= action <= 24:
             if action - 20 < len(self.board.p1_hand) and len(self.board.p1_hand) > 0:
-                action_used = ["attack", action - 100]
+                action_used = ["attack", action - 20]
         else:
             if not self.card_in_play and len(self.board.p1_hand) > 0:
                 action_used = ["attack", 0]
@@ -224,6 +216,9 @@ class KerduGym(py_environment.PyEnvironment):
                 p2_board[row_index + (4 * column_index) + (20 * card_value)] = 1
         hand = np.zeros(65).reshape(-1, 1)
         for hand_index, card_value in enumerate(self.board.p1_hand):
+            if hand_index + (5 * card_value) >= 65:
+                print("wat")
+                hand[99] = 1
             hand[hand_index + (5 * card_value)] = 1
         opponent_num_cards = np.zeros(5).reshape(-1, 1)
         opponent_num_cards[len(self.board.p2_hand) - 1] = 1
@@ -265,7 +260,8 @@ class KerduGym(py_environment.PyEnvironment):
             # assasination
             # attack, card_idx
             del self.board.p1_hand[0]
-            del self.board.p2_hand[0]
+            if len(self.board.p2_hand) != 0:
+                del self.board.p2_hand[0]
             if len(self.board.p1_hand) == 0:
                 return True
             else:
@@ -276,13 +272,23 @@ class KerduGym(py_environment.PyEnvironment):
         if self._episode_ended:
             return self.reset()
 
+        # todo: Remove original correct actions
+
+        self.correct_actions = list()
+
         if self.exercise == 0:
-            for index, card in enumerate(self.board.p1_rows[0]):
-                self.correct_actions.append(["defend", self.board.p1_hand.index(card), 0, index])
+            if len(self.board.p1_rows[0]) == 1:
+                self.correct_actions.append(["defend", 0, 0, 0])
+            else:
+                sorted_indicies_row = np.argsort(self.board.p1_rows[0]).tolist()
+                sorted_indicies_hand = np.argsort(self.board.p1_hand).tolist()
+                for index in range(len(sorted_indicies_row)):
+                    self.correct_actions.append(["defend", self.board.p1_hand.index(self.board.p1_hand[sorted_indicies_hand[index]]), 0, sorted_indicies_row[index]])
         if self.exercise == 1:
-            for row in self.board.p1_rows:
+            for row_idx, row in enumerate(self.board.p1_rows):
                 for index, card in enumerate(row):
-                    self.correct_actions.append(["defend", self.board.p1_rows.index(card), row, index])
+                    # "defend, card_used_idx, row, column"
+                    self.correct_actions.append(["defend", self.board.p1_rows[row_idx].index(card), row_idx, index])
         elif self.exercise == 2:
             self.correct_actions = ["pass"]
         elif self.exercise == 3:

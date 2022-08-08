@@ -46,5 +46,5 @@ from Environments.GymEnv import KerduGym as Gym
 game_env = Gym()
 print("12 ========================================================")
 twelve_net = C51(100000, 12, -100, 100, 4)
-twelve_net.train(game_env, "Helped12")
+twelve_net.train(game_env, "Gym12")
 twelve_net.viewPlot()
