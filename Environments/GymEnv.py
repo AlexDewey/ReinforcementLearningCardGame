@@ -62,12 +62,10 @@ class KerduGym(py_environment.PyEnvironment):
 
         if self.exercise == 0:
             # Optimal first row defence
-            while len(self.board.p1_rows[0]) == 0:
-                for num_possible_cards in range(5):
-                    # Create Board
-                    if random.randrange(0, 2) == 1:
-                        card_value = random.randrange(0, 13)
-                        self.board.p1_rows[0].append(card_value)
+            for num_possible_cards in range(5):
+                # Create Board
+                card_value = random.randrange(0, 3)
+                self.board.p1_rows[0].append(card_value)
 
             random.shuffle(self.board.p1_rows[0])
 
@@ -86,19 +84,18 @@ class KerduGym(py_environment.PyEnvironment):
         elif self.exercise == 1:
             # Perfect Defence
             # While the board is empty
-            while len(self.board.p1_rows[0]) == 0 and len(self.board.p1_rows[1]) == 0 and len(self.board.p1_rows[2]) == 0 and len(self.board.p1_rows[3]) == 0:
-                for num_possible_cards in range(5):
-                    if random.randrange(0, 2) == 1:
-                        card_value = random.randrange(0, 13)
-                        if card_value <= 1:
-                            self.board.p1_rows[0].append(card_value)
-                        elif 2 <= card_value <= 8:
-                            self.board.p1_rows[1].append(card_value)
-                        elif 9 <= card_value <= 11:
-                            self.board.p1_rows[2].append(card_value)
-                        elif card_value == 12:
-                            self.board.p1_rows[3].append(card_value)
-                        self.board.p1_hand.append(card_value)
+            for num_possible_cards in range(5):
+                card_value = random.randrange(0, 13)
+                if card_value <= 1:
+                    self.board.p1_rows[0].append(card_value)
+                elif 2 <= card_value <= 8:
+                    self.board.p1_rows[1].append(card_value)
+                elif 9 <= card_value <= 11:
+                    self.board.p1_rows[2].append(card_value)
+                elif card_value == 12:
+                    self.board.p1_rows[3].append(card_value)
+                self.board.p1_hand.append(card_value)
+
         elif self.exercise == 2:
             # Pass
             while len(self.board.p2_rows[0]) == 0:
@@ -271,8 +268,6 @@ class KerduGym(py_environment.PyEnvironment):
 
         if self._episode_ended:
             return self.reset()
-
-        # todo: Remove original correct actions
 
         self.correct_actions = list()
 
