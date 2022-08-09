@@ -37,14 +37,16 @@
 
 # Environment difficulty 1 (aggressive / hard) - 4 (easy)
 # WatchEnv = WatchEnv(4)
-from Agents.C51Run import C51, watch
+from Agents.C51Run import C51, watch as watch51
+from Agents.POCRun import POCC51
 from Environments.BasicEnv import KerduGameEnv as NormalEnv
 from Environments.AssumedDefenceEnv import KerduGameEnv as AssistedEnv
 from Environments.PVAEnv import KerduGamePVN as PlayerVsAgent
 from Environments.GymEnv import KerduGym as Gym
+from Environments.DefPOCEnv import DefencePOCGym as POC
 
-game_env = Gym()
-print("12 ========================================================")
-twelve_net = C51(100000, 52, -100, 100, 1)
-twelve_net.train(game_env, "Gym52")
+game_env = POC()
+print("52 ========================================================")
+twelve_net = POCC51(100000, 52, -100, 100, 1)
+twelve_net.train(game_env, "POC52")
 twelve_net.viewPlot()
