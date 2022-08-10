@@ -2,10 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4f21ec5e-c4dc-4b0b-835a-9c25e1d9f386" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/Agents/POCRun.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Environments/DefPOCEnv.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Environments/GymEnv.py" beforeDir="false" afterPath="$PROJECT_DIR$/Environments/GymEnv.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Agents/POCRun.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Environments/DefPOCEnv.py" beforeDir="false" afterPath="$PROJECT_DIR$/Environments/DefPOCEnv.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modelTraining.py" beforeDir="false" afterPath="$PROJECT_DIR$/modelTraining.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -133,19 +132,14 @@
           <option name="timeStamp" value="16" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Environments/GymEnv.py</url>
-          <line>146</line>
-          <option name="timeStamp" value="85" />
+          <url>file://$PROJECT_DIR$/Environments/DefPOCEnv.py</url>
+          <line>148</line>
+          <option name="timeStamp" value="113" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Environments/GymEnv.py</url>
-          <line>153</line>
-          <option name="timeStamp" value="86" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Environments/GymEnv.py</url>
-          <line>174</line>
-          <option name="timeStamp" value="87" />
+          <url>file://$PROJECT_DIR$/Environments/DefPOCEnv.py</url>
+          <line>235</line>
+          <option name="timeStamp" value="115" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

@@ -57,27 +57,67 @@ class DefencePOCGym(py_environment.PyEnvironment):
 
         self.correct_actions = list()
 
-        # Optimal first row defence
-        for num_possible_cards in range(5):
-            # Create Board
-            card_value = random.randrange(0, 13)
-            self.board.p1_rows[0].append(card_value)
+        self.exercise = random.randrange(0, 3)
 
-        random.shuffle(self.board.p1_rows[0])
+        if self.exercise == 0:
+            # Optimal first row defence
+            for num_possible_cards in range(5):
+                # Create Board
+                card_value = random.randrange(0, 13)
+                while card_value in self.board.p1_rows[0]:
+                    card_value = random.randrange(0, 13)
+                self.board.p1_rows[0].append(card_value)
 
-        # Create hand that may be suboptimal for defence, but a clear answer is given
-        for card in self.board.p1_rows[0]:
-            max_value = card
-            while random.randrange(0, 4) != 0:
-                if (max_value + 1) not in self.board.p1_rows[0]:
-                    if max_value == 12:
-                        continue
+            random.shuffle(self.board.p1_rows[0])
+
+            # Create hand that may be suboptimal for defence, but a clear answer is given
+            for card in self.board.p1_rows[0]:
+                max_value = card
+                while random.randrange(0, 4) != 0:
+                    if (max_value + 1) not in self.board.p1_rows[0]:
+                        if max_value == 12 or (max_value + 1) in self.board.p1_rows[0]:
+                            continue
+                        else:
+                            max_value += 1
                     else:
-                        max_value += 1
-                else:
-                    continue
-            self.board.p1_hand.append(max_value)
+                        continue
+                self.board.p1_hand.append(max_value)
 
+            random.shuffle(self.board.p1_hand)
+        elif self.exercise == 1:
+            # Perfect Defence
+            # While the board is empty
+            for num_possible_cards in range(5):
+                card_value = random.randrange(0, 13)
+                if card_value <= 1:
+                    self.board.p1_rows[0].append(card_value)
+                elif 2 <= card_value <= 8:
+                    self.board.p1_rows[1].append(card_value)
+                elif 9 <= card_value <= 11:
+                    self.board.p1_rows[2].append(card_value)
+                elif card_value == 12:
+                    self.board.p1_rows[3].append(card_value)
+                self.board.p1_hand.append(card_value)
+
+            random.shuffle(self.board.p1_rows[0])
+            random.shuffle(self.board.p1_rows[1])
+            random.shuffle(self.board.p1_rows[2])
+            random.shuffle(self.board.p1_rows[3])
+            random.shuffle(self.board.p1_hand)
+        elif self.exercise == 2:
+            # Pass
+            for num_possible_cards in range(5):
+                card_value = random.randrange(0, 13)
+                self.board.p1_hand.append(card_value)
+
+            while len(self.board.p2_rows[0]) == 0:
+                for num_possible_card in range(5):
+                    # Create Board
+                    if random.randrange(0, 2) == 1:
+                        card_value = random.randrange(0, 13)
+                        self.board.p2_rows[0].append(card_value)
+
+            self.card_in_play = True
 
         self._state = self.transcribe_state()
         return ts.restart(self._state)
@@ -101,7 +141,7 @@ class DefencePOCGym(py_environment.PyEnvironment):
                 if best_fit[0] == -1:
                     return None
                 else:
-                    action_used = ["defend", defend_idx, row, best_fit[1]]
+                    action_used = ["defend", defend_idx, row.item(), best_fit[1]]
         elif 20 <= action <= 24:
             if action - 20 < len(self.board.p1_hand) and len(self.board.p1_hand) > 0:
                 action_used = ["attack", action - 20]
@@ -109,7 +149,7 @@ class DefencePOCGym(py_environment.PyEnvironment):
             if not self.card_in_play and len(self.board.p1_hand) > 0:
                 action_used = ["attack", 0]
             else:
-                action_used = ["pass"]
+                action_used = "pass"
 
         return action_used
 
@@ -144,33 +184,62 @@ class DefencePOCGym(py_environment.PyEnvironment):
             self.view = False
 
     def enact_action(self, action_used):
-
-        # Perfect Defence
-        # "defend, card_used_idx, row, column"
-        del self.board.p1_hand[action_used[1]]
-        del self.board.p1_rows[action_used[2]][action_used[3]]
-        if len(self.board.p1_hand) == 0:
+        if self.exercise == 0:
+            # Optimal First Defence
+            # self.correct_actions.append(["defend", self.board.p1_hand.index(card), 0, index])
+            del self.board.p1_hand[action_used[1]]
+            del self.board.p1_rows[0][action_used[3]]
+            if len(self.board.p1_hand) == 0:
+                return True
+            else:
+                return False
+        elif self.exercise == 1:
+            # Perfect Defence
+            # "defend, card_used_idx, row, column"
+            del self.board.p1_hand[action_used[1]]
+            del self.board.p1_rows[action_used[2]][action_used[3]]
+            if len(self.board.p1_hand) == 0:
+                return True
+            else:
+                return False
+        elif self.exercise == 2:
             return True
-        else:
-            return False
-
 
     def _step(self, action):
 
-        if self._episode_ended:
+        if self._episode_ended or (len(self.board.p1_hand) == 0 and self.exercise != 2):
             return self.reset()
 
         self.correct_actions = list()
 
-        for row_idx, row in enumerate(self.board.p1_rows):
-            for index, card in enumerate(row):
-                # "defend, card_used_idx, row, column"
-                self.correct_actions.append(["defend", self.board.p1_rows[row_idx].index(card), row_idx, index])
+        if self.exercise == 0:
+            if len(self.board.p1_rows[0]) == 1:
+                self.correct_actions.append(["defend", 0, 0, 0])
+            else:
+                sorted_indicies_row = np.argsort(self.board.p1_rows[0]).tolist()
+                sorted_indicies_hand = np.argsort(self.board.p1_hand).tolist()
+                for index in range(len(sorted_indicies_row)):
+                    self.correct_actions.append(["defend", self.board.p1_hand.index(self.board.p1_hand[sorted_indicies_hand[index]]), 0, sorted_indicies_row[index]])
+        elif self.exercise == 1:
+            for card in self.board.p1_hand:
+                for row_idx, row in enumerate(self.board.p1_rows):
+                    if len(row) != 0:
+                        for column_idx, column in enumerate(row):
+                            if column == card:
+                                self.correct_actions.append(["defend", self.board.p1_hand.index(card), row_idx, column_idx])
+        elif self.exercise == 2:
+            self.correct_actions = ["pass"]
 
         action_used = self.interpret_action(action)
 
         if action_used not in self.correct_actions:
             reward = -100
+            # print("Exercise: " + str(self.exercise))
+            # print("Hand: " + str(self.board.p1_hand))
+            # print("Board: " + str(self.board.p1_rows))
+            # print("Correct Actions: " + str(self.correct_actions))
+            # print("Action used: " + str(action_used))
+            # print("======================")
             return ts.transition(self._state, reward=reward, discount=1.0)
         else:
             # Enact the action that's used onto the board and return if the gym training is complete
