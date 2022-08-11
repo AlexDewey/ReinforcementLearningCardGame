@@ -52,12 +52,12 @@ class DefencePOCGym(py_environment.PyEnvironment):
         self._episode_ended = False
         # Initializes the board and gives players cards
         self.board = Board()
-        self.card_in_play = False
+        self.card_in_play = True
         self.playerNum = 1
 
         self.correct_actions = list()
 
-        self.exercise = random.randrange(0, 3)
+        self.exercise = random.randrange(0, 4)
 
         if self.exercise == 0:
             # Optimal first row defence
@@ -116,8 +116,41 @@ class DefencePOCGym(py_environment.PyEnvironment):
                     if random.randrange(0, 2) == 1:
                         card_value = random.randrange(0, 13)
                         self.board.p2_rows[0].append(card_value)
+        elif self.exercise == 3:
+            # Assassinate
 
-            self.card_in_play = True
+            # Non-threatening self board
+            for no_threat_row in range(1, 4):
+                for _ in range(5):
+                    if random.randrange(0, 3) == 1:
+                        if no_threat_row == 1:
+                            self.board.p1_rows[1].append(random.randrange(2, 9))
+                        elif no_threat_row == 2:
+                            self.board.p1_rows[2].append(random.randrange(9, 11))
+                        else:
+                            self.board.p1_rows[3].append(12)
+            # Non-threatening enemy board
+            for no_threat_row in range(1, 4):
+                for _ in range(5):
+                    if random.randrange(0, 3) == 1:
+                        if no_threat_row == 1:
+                            self.board.p2_rows[1].append(random.randrange(2, 9))
+                        elif no_threat_row == 2:
+                            self.board.p2_rows[2].append(random.randrange(9, 11))
+                        else:
+                            self.board.p2_rows[3].append(12)
+
+            hand_size = random.randrange(1, 5)
+            enemy_hand_size = hand_size - 1
+
+            for _ in range(hand_size):
+                if random.randrange(0, 2) == 0:
+                    self.board.p1_hand.append(0)
+                else:
+                    self.board.p1_hand.append(1)
+
+            for _ in range(enemy_hand_size):
+                self.board.p2_hand.append(random.randrange(2, 11))
 
         self._state = self.transcribe_state()
         return ts.restart(self._state)
@@ -204,6 +237,14 @@ class DefencePOCGym(py_environment.PyEnvironment):
                 return False
         elif self.exercise == 2:
             return True
+        elif self.exercise == 3:
+            del self.board.p1_hand[0]
+            if len(self.board.p2_hand) != 0:
+                del self.board.p2_hand[0]
+            if len(self.board.p1_hand) == 0:
+                return True
+            else:
+                return False
 
     def _step(self, action):
 
@@ -229,6 +270,9 @@ class DefencePOCGym(py_environment.PyEnvironment):
                                 self.correct_actions.append(["defend", self.board.p1_hand.index(card), row_idx, column_idx])
         elif self.exercise == 2:
             self.correct_actions = ["pass"]
+        elif self.exercise == 3:
+            for index in range(len(self.board.p1_hand)):
+                self.correct_actions.append(["attack", index])
 
         action_used = self.interpret_action(action)
 
