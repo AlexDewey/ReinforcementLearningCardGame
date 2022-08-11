@@ -41,7 +41,7 @@ from Agents.C51Run import C51, watch as watch51
 from Environments.BasicEnv import KerduGameEnv as NormalEnv
 from Environments.AssumedDefenceEnv import KerduGameEnv as AssistedEnv
 from Environments.PVAEnv import KerduGamePVN as PlayerVsAgent
-from Environments.DefPOCEnv import DefencePOCGym as POC
+from Environments.GymEnv import DefencePOCGym as POC
 
 game_env = AssistedEnv(3)
 print("Train! ========================================================")
