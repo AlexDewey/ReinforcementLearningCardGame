@@ -43,8 +43,8 @@ from Environments.AssumedDefenceEnv import KerduGameEnv as AssistedEnv
 from Environments.PVAEnv import KerduGamePVN as PlayerVsAgent
 from Environments.GymEnv import DefencePOCGym as POC
 
-game_env = AssistedEnv(3)
+game_env = AssistedEnv(2)
 print("Train! ========================================================")
-twelve_net = C51(10000, 52, -100, 100, 4)
-twelve_net.train(game_env, "All52")
+twelve_net = C51(500000, 52, -100, 100, 4)
+twelve_net.train(game_env, "NoGymGammeLow52")
 twelve_net.viewPlot()

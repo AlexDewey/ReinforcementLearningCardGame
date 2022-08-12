@@ -3,8 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="4f21ec5e-c4dc-4b0b-835a-9c25e1d9f386" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Environments/DefPOCEnv.py" beforeDir="false" afterPath="$PROJECT_DIR$/Environments/DefPOCEnv.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Environments/GymEnv.py" beforeDir="false" afterPath="$PROJECT_DIR$/Environments/GymEnv.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Agents/C51Run.py" beforeDir="false" afterPath="$PROJECT_DIR$/Agents/C51Run.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modelTraining.py" beforeDir="false" afterPath="$PROJECT_DIR$/modelTraining.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -132,7 +131,7 @@
           <option name="timeStamp" value="16" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Environments/DefPOCEnv.py</url>
+          <url>file://$PROJECT_DIR$/Environments/GymEnv.py</url>
           <line>155</line>
           <option name="timeStamp" value="17" />
         </line-breakpoint>

@@ -81,7 +81,7 @@ class C51:
         self.n_step_update = steps_considered
 
         self.num_eval_episodes = 10
-        self.eval_interval = 1000
+        self.eval_interval = 10000
 
         # Empty variables until assigned
         self.avg_returns = list()
