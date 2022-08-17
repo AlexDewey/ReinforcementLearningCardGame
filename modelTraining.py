@@ -37,7 +37,7 @@
 
 # Environment difficulty 1 (aggressive / hard) - 4 (easy)
 # WatchEnv = WatchEnv(4)
-from TrainingCode.C51Run import C51, watch as watch51
+from Agents.C51Run import C51, watch as watch51
 from Environments.BasicEnv import KerduGameEnv as NormalEnv
 from Environments.AssumedDefenceEnv import KerduGameEnv as AssistedEnv
 from Environments.PVAEnv import KerduGamePVN as PlayerVsAgent
