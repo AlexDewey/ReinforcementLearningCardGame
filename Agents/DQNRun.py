@@ -3,13 +3,15 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 
 from tf_agents.agents.categorical_dqn import categorical_dqn_agent
+from tf_agents.agents.dqn import dqn_agent
 from tf_agents.environments import tf_py_environment
-from tf_agents.networks import categorical_q_network
+from tf_agents.networks import categorical_q_network, sequential
 from tf_agents.policies import random_tf_policy, policy_saver
 from tf_agents.replay_buffers import tf_uniform_replay_buffer
 from tf_agents.trajectories import trajectory
 from tf_agents.utils import common
 from tf_agents.environments import wrappers
+from tf_agents.specs import tensor_spec
 
 
 # Finding the average return over 100 episodes
@@ -63,8 +65,11 @@ class DQN:
         self.collect_steps_per_iteration = 1
         # How many elements can be stored in the replay buffer
         self.replay_buffer_capacity = 100000
+        self.learning_rate = 0.001
+        self.batch_size = 64
+        self.n_step_update = 1
 
-        self.fc_layer_params = (242, 50)  # 242
+        self.fc_layer_params = (100, 50)  # 242
 
         self.num_eval_episodes = 10
         self.eval_interval = 10000
@@ -85,6 +90,8 @@ class DQN:
         train_env = tf_py_environment.TFPyEnvironment(train_py_env)
         eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
 
+        action_tensor_spec = tensor_spec.from_spec(env.action_spec())
+
         def dense_layer(num_units):
             return tf.keras.layers.Dense(
                 num_units,
@@ -93,7 +100,8 @@ class DQN:
                     scale=2.0, mode='fan_in', distribution='truncated_normal'))
 
         # DQN Setup
-        dense_layer = [dense_layer(num_units) for num_units in self.fc_layer_params]
+        dense_layers = [dense_layer(num_units) for num_units in self.fc_layer_params]
+        num_actions = action_tensor_spec.maximum - action_tensor_spec.minimum + 1
 
         q_values_layer = tf.keras.layers.Dense(
             num_actions,
@@ -103,25 +111,14 @@ class DQN:
             bias_initializer=tf.keras.initializers.Constant(-0.2))
         q_net = sequential.Sequential(dense_layers + [q_values_layer])
 
-        categorical_q_net = categorical_q_network.CategoricalQNetwork(
-            train_env.observation_spec(),
-            train_env.action_spec(),
-            num_atoms=self.num_atoms,
-            fc_layer_params=self.fc_layer_params)
-
-        optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=self.learning_rate)
+        optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
         train_step_counter = tf.compat.v1.train.get_or_create_global_step()  # tf.Variable(0)
-        agent = categorical_dqn_agent.CategoricalDqnAgent(
+        agent = dqn_agent.DqnAgent(
             train_env.time_step_spec(),
             train_env.action_spec(),
-            epsilon_greedy=0.1,
-            categorical_q_network=categorical_q_net,
+            q_network=q_net,
             optimizer=optimizer,
-            min_q_value=self.min_q_value,
-            max_q_value=self.max_q_value,
-            n_step_update=self.n_step_update,
             td_errors_loss_fn=common.element_wise_squared_loss,
-            gamma=self.gamma,
             train_step_counter=train_step_counter)
 
         agent.initialize()
